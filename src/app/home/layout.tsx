@@ -1,8 +1,25 @@
-export default function HomeLayout({
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import Header from "@/components/ui/header";
+
+export default async function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+	const session = await getSession();
+
+	if(!session){
+		redirect("/");
+	}
+
+	return (
+		<div className="min-h-screen w-full flex flex-col bg-beige font-sans">
+		<Header user={session}/>
+		<div className="flex-1 w-full max-w-md mx-auto px-6 py-6">
+			{children}
+		</div>
+		</div>
+	);
 }
 
