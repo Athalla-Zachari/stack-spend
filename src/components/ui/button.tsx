@@ -10,7 +10,7 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
         solid: "bg-teal-deep text-grey100 hover:bg-teal/80",
         link: "bg-none text-link font-semibold",
-        icon: "bg-none "
+        icon: "bg-none rounded-full"
       },
       size: {
         default:
