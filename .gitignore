@@ -39,6 +39,9 @@ yarn-error.log*
 # AI context
 PROJECT_CONTEXT.md
 
+# seeder
+seed-user.mjs
+
 # vercel
 .vercel
 

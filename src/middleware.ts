@@ -5,13 +5,11 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get("stack_session");
   const { pathname } = request.nextUrl;
 
-  // isLoggedIn dan mengakses root "/", redirect to /dashboard
   if (pathname === "/" && sessionCookie?.value) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  // isLoggedIn = false dan mengakses /dashboard, redirect to "/"
-  if (pathname.startsWith("/dashboard") && !sessionCookie?.value) {
+  if (pathname.startsWith("/home") && !sessionCookie?.value) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -19,6 +17,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*"],
+  matcher: ["/", "/home/:path*"],
 };
 
