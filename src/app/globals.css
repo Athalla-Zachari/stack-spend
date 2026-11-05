@@ -1,26 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+@theme{
+  	/* Import DM Sans as Default */
+  	--font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+	/* ==========================================================================
+		Module Colorbase & tints
+		========================================================================== */
+	--color-charcoal: #262228;
+	--color-teal-deep: #002220;
+	--color-teal-mid: #0B4F4A;
+	--color-teal: #00725E;
+	--color-aqua: #48AAA3;
+	--color-aqua-light: #B0CECC;
+	--color-lime: #C6E86B;
+	--color-pink: #FF2D55;
+	--color-beige: #F4EBDD;
+
+	/* ==========================================================================
+		Module Typography
+		========================================================================== */
+	--color-subtext: #575459;
+	--color-grey500: #8E8A93;
+	--color-grey300: #D9D7DB;
+	--color-grey100: #F3F2F4;
+
+	/* ==========================================================================
+		Module Tools
+		========================================================================== */
+	--color-link: #0088FF;
+	--color-error: #E5484D;
+	--color-warning: #F2A541;
+	--color-green: #2E9E6B;
+
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
