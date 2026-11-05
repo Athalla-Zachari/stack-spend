@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# db
+/db/
+
 # next.js
 /.next/
 /out/
@@ -34,7 +37,7 @@ yarn-error.log*
 .env*
 
 # AI context
-PROJECT_CONTEXT.node_modules
+PROJECT_CONTEXT.md
 
 # vercel
 .vercel
