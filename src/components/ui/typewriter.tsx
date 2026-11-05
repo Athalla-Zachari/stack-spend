@@ -27,6 +27,7 @@ export default function MotionTypewriter({ text, speed = 0.06 }: MotionTypewrite
         
         {/* Blipping Cursor */}
         <motion.span
+            initial={{ opacity: 0 }}
             animate={{ opacity: [1, 0] }}
             transition={{
             repeat: Infinity,
@@ -34,7 +35,7 @@ export default function MotionTypewriter({ text, speed = 0.06 }: MotionTypewrite
             repeatType: 'reverse',
             ease: 'easeInOut',
             }}
-            className="ml-1 inline-block w-[3px] h-8 bg-ink rounded-full"
+            className="ml-1 inline-block w-[3px] h-8 bg-teal-deep rounded-full"
         />
         </h1>
     );

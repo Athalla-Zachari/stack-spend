@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,11 @@ import { motion } from 'motion/react';
 import { Eye, EyeOff } from "lucide-react";
 import spendItLogo from "../../public/assets/make-it-rain.svg";
 import MotionTypewriter from "@/components/ui/typewriter";
+import { loginAction } from "@/app/actions/auth";
 
 export default function Home() {
 	const [showPassword, setShowPassword] = useState(false);
+	const [state, formAction, isPending] = useActionState(loginAction, null);
 
 	return(
 	<div className="min-h-screen w-full pt-24 flex flex-col items-center gap-16 bg-beige">
@@ -26,15 +28,28 @@ export default function Home() {
 			</motion.p>
 		</div>
 
-		<div className="w-full flex justify-center">
+		<motion.div 
+		initial={{ opacity: 0 }}
+		animate={{ opacity: 1 }}
+		transition={{ delay: 0.3, duration: 1 }}
+		className="w-full flex justify-center">
 		<Image
 			src={spendItLogo}
 			alt="spend-it-logo"
 			className="h-34 w-auto object-contain"
 		/>
-		</div>
+		</motion.div>
 
-		<section className="w-full flex-1 flex flex-col items-center gap-3 bg-white rounded-tr-[40px] rounded-tl-[40px] px-6 py-6 shadow-md">
+		<motion.section 
+		initial={{ opacity: 0, y: 60 }}
+		animate={{ opacity: 1, y: 0 }}
+		transition={{
+			duration: 1.2,
+			delay: 0.6,
+			ease: [0.16, 1, 0.3, 1],
+		}}
+		className="w-full flex-1 flex flex-col items-center gap-3 bg-white rounded-tr-[40px] rounded-tl-[40px] px-6 py-6 shadow-md"
+		>
 			<div className="bg-grey500 rounded-full h-2 w-15"></div>
 
 			<div className="w-full align-baseline py-4">
@@ -42,11 +57,18 @@ export default function Home() {
 			<p className="text-sm text-subtext">Login to keep track of todays expenses</p>
 			</div>
 
-			<form action="POST" className="w-full flex flex-col gap-5">
+			<form action={formAction} className="w-full flex flex-col gap-5">
+				{state?.error && (
+					<div className="bg-red-50 border border-error/20 text-error text-sm px-4 py-2.5 rounded-xl text-center">
+						{state.error}
+					</div>
+				)}
 				<section>
 				<h1 className="font-semibold text-[15px] text-teal-deep">Full name</h1>
 				<input 
+					name="identifier"
 					type="text" 
+					required
 					placeholder="Fullname..." 
 					className="px-3 py-3 rounded-xl border border-grey300 w-full"
 				/>	
@@ -55,7 +77,9 @@ export default function Home() {
 				<h1 className="font-semibold text-[15px] text-teal-deep">Password</h1>
 				<div className="relative flex items-center mt-1">
 					<input 
+					name="password"
 					type={showPassword ? "text" : "password"} 
+					required
 					placeholder="Password" 
 					className="px-3 py-3 pr-10 rounded-xl border border-grey300 w-full"
 					/>	
@@ -75,6 +99,7 @@ export default function Home() {
 				</section>
 
 				<Button
+				type="button"
 				variant={"link"}
 				size={"link"}
 				className={" mr-auto text-sm"}
@@ -83,14 +108,16 @@ export default function Home() {
 				</Button>
 
 				<Button
+				type="submit"
+				disabled={isPending}
 				variant={"solid"}
 				size={"lg"}
 				className={"w-full"}
 				>
-					Login
+					{isPending ? "Logging in..." : "Login"}
 				</Button>
 			</form>
-		</section>
+		</motion.section>
 	</div>
 	);
 }
