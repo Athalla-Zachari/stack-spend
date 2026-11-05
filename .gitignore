@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# AI context
+PROJECT_CONTEXT.node_modules
+
 # vercel
 .vercel
 
