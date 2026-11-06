@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, pockets } from "@/db";
 
+import { Button } from "@/components/ui/button";
+import { CircleDollarSign } from "lucide-react";
 import CardContainer from "./CardContainer";
 
 export default async function HomePage() {

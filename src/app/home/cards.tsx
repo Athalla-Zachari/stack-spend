@@ -33,7 +33,7 @@ export default function Cards({ pockets, userName }: CardsProps) {
     const [isVisible, setIsVisible] = useState(false);
 
     return (
-        <section className="flex items-center gap-4 -mx-8 px-8 w-[calc(100%+4rem)] overflow-x-auto py-3 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <section className="flex items-center gap-4 -mx-8 px-8 w-[calc(100%+4rem)] overflow-x-auto py-3 snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden">
         {pockets.map((pocket, index) => {
             const bgColor = getCardBgColor(pockets[0]?.id || pocket.id, index);
 
