@@ -16,7 +16,7 @@ export default async function HomeLayout({
 	return (
 		<div className="min-h-screen w-full flex flex-col font-sans">
 		<Header user={session}/>
-		<div className="flex-1 w-full max-w-md mx-auto px-4">
+		<div className="flex-1 w-full! p-4">
 			{children}
 		</div>
 		</div>
