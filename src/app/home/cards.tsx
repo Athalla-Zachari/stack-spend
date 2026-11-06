@@ -5,6 +5,10 @@ import Image from "next/image";
 import type { Pocket } from "@/db/schema";
 
 import { Button } from "@/components/ui/button";
+import {
+  ElasticScroll,
+  ElasticScrollItem,
+} from "@/components/ui/elastic-scroll";
 import { Eye, EyeOff } from "lucide-react";
 import walletLogo from "../../../public/assets/empty-wallet.svg";
 import chip from "../../../public/assets/Circuit.svg";
@@ -33,15 +37,15 @@ export default function Cards({ pockets, userName }: CardsProps) {
     const [isVisible, setIsVisible] = useState(false);
 
     return (
-        <section className="flex items-center gap-4 -mx-8 px-8 w-[calc(100%+4rem)] overflow-x-auto py-3 snap-x snap-mandatory scrollbar-none [&::-webkit-scrollbar]:hidden">
+        <ElasticScroll fullBleed className="gap-4 py-3">
         {pockets.map((pocket, index) => {
             const bgColor = getCardBgColor(pockets[0]?.id || pocket.id, index);
 
             return (
             /* the card itself */
-            <div
+            <ElasticScrollItem
             key={pocket.id}
-            className={`relative w-full shrink-0 snap-center rounded-xl shadow-lg p-5 flex flex-col justify-between gap-3 ${bgColor} overflow-hidden`}
+            className={`relative w-full rounded-xl shadow-lg p-5 flex flex-col justify-between gap-3 ${bgColor} overflow-hidden`}
             >
             <span className="flex items-center">
                 <h1 className="text-teal-deep text-lg font-bold leading-tight truncate z-10">
@@ -77,9 +81,9 @@ export default function Cards({ pockets, userName }: CardsProps) {
             <h1 className="text-teal-mid text-[14px] font-bold leading-tight uppercase truncate z-10">
                 {pocket.name} - {userName}
             </h1>
-            </div>
+            </ElasticScrollItem>
             );
         })}
-        </section>
+        </ElasticScroll>
     );
 }

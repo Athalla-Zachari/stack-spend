@@ -22,7 +22,7 @@ export default function MotionTypewriter({ text, speed = 0.06 }: MotionTypewrite
     }, [text, speed, count]);
 
     return (
-        <h1 className="text-4xl text-ink font-bold tracking-tight inline-flex flex-wrap justify-center items-center text-center">
+        <h1 className="text-4xl text-ink font-black tracking-tighter inline-flex flex-wrap justify-center items-center text-center">
         <motion.span>{displayText}</motion.span>
         
         {/* Blipping Cursor */}

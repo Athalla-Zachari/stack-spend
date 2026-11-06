@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Pocket } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,7 +9,9 @@ import {
     BanknoteArrowDown, 
     PiggyBank,
     BanknoteX,
-    ReceiptText 
+    ReceiptText,
+    Eye,
+    EyeOff 
 } from "lucide-react";
 import Cards from "./cards";
 
@@ -21,6 +24,7 @@ export default function CardContainer({
   pockets,
   userName,
 }: CardContainerProps) {
+    const [isVisible, setIsVisible] = useState(false);
     const totalBalance = pockets.reduce(
         (sum, pocket) => sum + Number(pocket.balance || 0),
         0,
@@ -32,8 +36,20 @@ export default function CardContainer({
             <div className="flex flex-col flex-1">
             <span className="flex items-center">
                 <h1 className="text-teal-mid text-lg font-bold leading-tight">
-                IDR {totalBalance.toLocaleString("id-ID")}
+                    IDR {isVisible ? `${totalBalance.toLocaleString("id-ID")}, 00` : ("* * * * * * * *")}
                 </h1>
+                <Button
+                onClick={() => setIsVisible((prev) => !prev)} 
+                variant={"icon"} 
+                size={'icon'}
+                className={"text-teal-mid"}
+                >
+                    {isVisible ? (
+					<EyeOff />
+					) : (
+					<Eye  />
+					)}
+                </Button>
             </span>
             <p className="text-subtext text-sm leading-tight">Total Balance</p>
             </div>
@@ -59,7 +75,7 @@ export default function CardContainer({
         <Cards pockets={pockets} userName={userName} />
 
         {/* Inside Navigation */}
-		<section className="flex items-center gap-3 py-3">
+		<section className="flex items-center gap-5 py-3">
 			<div className="flex flex-col gap-1 items-center">
 				<Button
 				variant={"icon"}
