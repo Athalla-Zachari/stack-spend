@@ -26,11 +26,11 @@ const CARD_BG_COLORS = [
 ] as const;
 
 function getCardBgColor(id: string, index: number) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return CARD_BG_COLORS[(Math.abs(hash) + index) % CARD_BG_COLORS.length];
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+        hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return CARD_BG_COLORS[(Math.abs(hash) + index) % CARD_BG_COLORS.length];
 }
 
 export default function Cards({ pockets, userName }: CardsProps) {
@@ -44,43 +44,42 @@ export default function Cards({ pockets, userName }: CardsProps) {
             return (
             /* the card itself */
             <ElasticScrollItem
-            key={pocket.id}
-            className={`relative w-full rounded-xl shadow-lg p-5 flex flex-col justify-between gap-3 ${bgColor} overflow-hidden`}
+                key={pocket.id}
+                className={`relative w-full rounded-xl shadow-lg p-5 flex flex-col justify-between gap-3 ${bgColor} overflow-hidden`}
             >
-            <span className="flex items-center">
+                <span className="flex items-center">
                 <h1 className="text-teal-deep text-lg font-bold leading-tight truncate z-10">
-                    IDR {isVisible ? `${Number(pocket.balance || 0).toLocaleString("id-ID")}, 00` : ("* * * * * * * *")}
+                    IDR{" "}
+                    {isVisible
+                    ? `${Number(pocket.balance || 0).toLocaleString("id-ID")}, 00`
+                    : "* * * * * * * *"}
                 </h1>
                 <Button
-                onClick={() => setIsVisible((prev) => !prev)} 
-                variant={"icon"} 
-                size={'icon'}
-                className={"text-teal-deep"}
+                    onClick={() => setIsVisible((prev) => !prev)}
+                    variant={"icon"}
+                    size={"icon"}
+                    className={"text-teal-deep"}
                 >
-                    {isVisible ? (
-					<EyeOff />
-					) : (
-					<Eye  />
-					)}
+                    {isVisible ? <EyeOff /> : <Eye />}
                 </Button>
-            </span>
+                </span>
 
-            <div className="w-full flex justify-between items-center z-10">
+                <div className="w-full flex justify-between items-center z-10">
                 <Image
-                src={chip}
-                alt="sim-chip"
-                className="h-10 w-auto object-contain shrink-0"
+                    src={chip}
+                    alt="sim-chip"
+                    className="h-10 w-auto object-contain shrink-0"
                 />
                 <Image
-                src={walletLogo}
-                alt="empty-wallet-logo"
-                className="h-24 w-auto object-contain shrink-0"
+                    src={walletLogo}
+                    alt="empty-wallet-logo"
+                    className="h-24 w-auto object-contain shrink-0"
                 />
-            </div>
+                </div>
 
-            <h1 className="text-teal-mid text-[14px] font-bold leading-tight uppercase truncate z-10">
+                <h1 className="text-teal-mid text-[14px] font-bold leading-tight uppercase truncate z-10">
                 {pocket.name} - {userName}
-            </h1>
+                </h1>
             </ElasticScrollItem>
             );
         })}

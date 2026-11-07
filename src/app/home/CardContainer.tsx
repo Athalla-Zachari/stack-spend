@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Pocket } from "@/db/schema";
+import { menuList } from "./menu";
+
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -14,12 +16,13 @@ import {
     Eye,
     EyeOff 
 } from "lucide-react";
-import Cards from "./cards";
+import Cards from "./Card";
 
 interface CardContainerProps {
   pockets: Pocket[];
   userName: string;
 }
+
 
 export default function CardContainer({
   pockets,
@@ -77,39 +80,27 @@ export default function CardContainer({
 
         <Cards pockets={pockets} userName={userName} />
 
-        {/* Inside Navigation */}
-		<section className="flex items-center gap-5 py-3">
-			<div className="flex flex-col gap-1 items-center">
-				<Button
-				variant={"icon"}
-				size={"sm"}
-				className={"bg-teal-mid p-2 h-max w-max rounded-full text-aqua-light"}
-				>
-					<PiggyBank className="size-7!" />
-				</Button>
-                <p className="text-xs text-grey500">Savings</p>
-			</div>
-			<div className="flex flex-col items-center gap-1">
-				<Button
-				variant={"icon"}
-				size={"icon"}
-				className={"bg-teal-mid p-2 h-max w-max text-aqua-light"}
-				>
-					<BanknoteX className="size-7!" />
-				</Button>
-                <p className="text-xs text-grey500">Debts</p>
-			</div>
-			<div className="flex flex-col items-center gap-1">
-				<Button
-				variant={"icon"}
-				size={"icon"}
-				className={"bg-teal-mid p-2 h-max w-max text-aqua-light"}
-				>
-					<ReceiptText className="size-7!" />
-				</Button>
-                <p className="text-xs text-grey500">Bills</p>
-			</div>
-		</section>
+        {/* Menu List */}
+        <section className="flex items-center gap-5 py3">
+        {menuList.map((item) => {
+            const Icon = item.icon;
+
+            return(
+            <div key={item.id} className="flex flex-col gap-1 items-center">
+                <Button
+                onClick={() => router.push(`${item.path}`)}
+                variant={"icon"}
+                size={"sm"}
+                className={"bg-teal-mid p-2 h-max w-max rounded-full text-aqua-light"}
+                >   
+                    <Icon className="size-7!" />
+                </Button>
+                <p className="text-xs text-grey500">{item.label}</p>
+            </div>
+            );
+        })}
+        </section>
+
         
         </section>
     );
