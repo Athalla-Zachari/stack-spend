@@ -12,6 +12,11 @@ export const getUserPockets = cache(async () => {
     .where(eq(pockets.userId, session.id));
 });
 
+export const getCategories = cache(async () => {
+  await requireSession();
+  return db.select().from(categories);
+});
+
 export const getUserTransactions = cache(async () => {
   const session = await requireSession();
   const relatedPockets = alias(pockets, "related_pockets");

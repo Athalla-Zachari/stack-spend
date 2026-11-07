@@ -95,28 +95,28 @@ export default function HistoryContainer({
 }
 
 export function HistoryContainerSkeleton() {
-  return (
-    <section className="py-2 bg-white flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-5 w-36" />
-        <Skeleton className="h-4 w-12" />
-      </div>
-      <div className="flex flex-col gap-2 w-full">
-        {[1, 2, 3].map((item) => (
-          <div
+    return (
+        <section className="py-2 bg-white flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-4 w-12" />
+        </div>
+        <div className="flex flex-col gap-2 w-full">
+            {[1, 2, 3].map((item) => (
+            <div
             key={item}
             className="w-full rounded-xl shadow-lg p-3 flex items-center gap-3 bg-white"
-          >
-            <Skeleton className="size-11 shrink-0 rounded-xl" />
-            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-              <Skeleton className="h-3.5 w-32" />
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="h-3 w-20" />
+            >
+                <Skeleton className="size-11 shrink-0 rounded-xl" />
+                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                <Skeleton className="h-3.5 w-32" />
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-3 w-20" />
+                </div>
+                <Skeleton className="h-5 w-24 shrink-0" />
             </div>
-            <Skeleton className="h-5 w-24 shrink-0" />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+            ))}
+        </div>
+        </section>
+    );
 }
