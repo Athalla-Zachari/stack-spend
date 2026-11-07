@@ -1,16 +1,10 @@
 import { Suspense } from "react";
-import { getSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { requireSession } from "@/lib/auth";
 import Header from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function AuthenticatedHeader() {
-	const session = await getSession();
-
-	if (!session) {
-		redirect("/");
-	}
-
+	const session = await requireSession();
 	return <Header user={session} />;
 }
 

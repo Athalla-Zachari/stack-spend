@@ -10,9 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { 
     BanknoteArrowUp, 
     BanknoteArrowDown, 
-    PiggyBank,
-    BanknoteX,
-    ReceiptText,
     Eye,
     EyeOff 
 } from "lucide-react";
@@ -81,7 +78,7 @@ export default function CardContainer({
         <Cards pockets={pockets} userName={userName} />
 
         {/* Menu List */}
-        <section className="flex items-center gap-5 py3">
+        <section className="flex items-center gap-5 py-3">
         {menuList.map((item) => {
             const Icon = item.icon;
 

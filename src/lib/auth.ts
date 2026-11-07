@@ -1,4 +1,6 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 
 const SESSION_COOKIE_NAME = "stack_session";
@@ -128,11 +130,19 @@ export async function setSession(user: SessionUser) {
   });
 }
 
-export async function getSession(): Promise<SessionUser | null> {
+export const getSession = cache(async (): Promise<SessionUser | null> => {
   const cookieStore = await cookies();
   const cookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (!cookie?.value) return null;
   return verifySessionToken(cookie.value);
+});
+
+export async function requireSession(): Promise<SessionUser> {
+  const session = await getSession();
+  if (!session) {
+    redirect("/");
+  }
+  return session;
 }
 
 export async function clearSession() {

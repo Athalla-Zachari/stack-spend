@@ -1,31 +1,34 @@
 import { Suspense } from "react";
-import { getSession } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { db, pockets } from "@/db";
+import { requireSession } from "@/lib/auth";
+import { getUserPockets, getUserTransactions } from "@/db/queries";
 
 import CardContainer, { CardContainerSkeleton } from "./CardContainer";
+import HistoryContainer, { HistoryContainerSkeleton } from "./HistoryContainer";
 
-async function PocketsContent() {
-	const session = await getSession();
-
-	if (!session) {
-		redirect("/");
-	}
-
-	const userPockets = await db
-		.select()
-		.from(pockets)
-		.where(eq(pockets.userId, session.id));
+async function PocketsSection() {
+	const [session, userPockets] = await Promise.all([
+		requireSession(),
+		getUserPockets(),
+	]);
 
 	return <CardContainer pockets={userPockets} userName={session.displayName} />;
 }
 
+async function HistorySection() {
+	const transactions = await getUserTransactions();
+
+	return <HistoryContainer transactions={transactions}/>
+}
+
 export default function HomePage() {
 	return (
-		<main className="w-full flex flex-col bg-beige">
+		<main className="w-full flex flex-col bg-white gap-4">
 			<Suspense fallback={<CardContainerSkeleton />}>
-				<PocketsContent />
+				<PocketsSection />
+			</Suspense>
+
+			<Suspense fallback={<HistoryContainerSkeleton/>}>
+				<HistorySection/>
 			</Suspense>
 		</main>
 	);

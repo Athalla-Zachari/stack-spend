@@ -32,7 +32,6 @@ export const categories = sqliteTable("categories", {
 		.$defaultFn(() => crypto.randomUUID()),
 	name: text("name").notNull().unique(),
 	type: text("type", { enum: ["income", "expense"] }).notNull(),
-	groupName: text("group_name").notNull(),
 	description: text("description"),
 });
 

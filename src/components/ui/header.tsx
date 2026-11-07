@@ -15,7 +15,7 @@ export default function Header({user}: {user: SessionUser}){
     return(
 		<section className="flex items-center p-4 gap-2">
 			<div className="flex flex-col flex-1">
-			<h1 className="text-lg text-teal-deep font-semibold leading-tight tracking-tighter">StackSpend</h1>
+			<h1 className="text-2xl text-teal-deep font-bold leading-tight tracking-tighter">StackSpend</h1>
 			<p className="text-subtext text-sm leading-tight">Wazzup, {user.displayName}</p>
 			</div>
 
