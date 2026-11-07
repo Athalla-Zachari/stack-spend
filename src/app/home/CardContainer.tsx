@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Pocket } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,6 +25,7 @@ export default function CardContainer({
   pockets,
   userName,
 }: CardContainerProps) {
+    const router = useRouter();
     const [isVisible, setIsVisible] = useState(false);
     const totalBalance = pockets.reduce(
         (sum, pocket) => sum + Number(pocket.balance || 0),
@@ -56,6 +58,7 @@ export default function CardContainer({
 
             <div className="flex items-center gap-2">
             <Button
+            onClick={() => router.push("/transfer")}
             variant={"icon"}
             size={"icon"}
             className={"bg-teal-mid p-2 h-max w-max text-aqua-light"}
@@ -79,8 +82,8 @@ export default function CardContainer({
 			<div className="flex flex-col gap-1 items-center">
 				<Button
 				variant={"icon"}
-				size={"icon"}
-				className={"bg-teal-mid p-2 h-max w-max text-aqua-light"}
+				size={"sm"}
+				className={"bg-teal-mid p-2 h-max w-max rounded-full text-aqua-light"}
 				>
 					<PiggyBank className="size-7!" />
 				</Button>

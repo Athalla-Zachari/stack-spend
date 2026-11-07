@@ -1,4 +1,7 @@
-import { SessionUser } from "@/lib/auth";
+"use client"
+
+import type { SessionUser } from "@/lib/auth";
+import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import {
@@ -6,6 +9,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
+import { useRouter } from "next/navigation";
 
 export default function Header({user}: {user: SessionUser}){
     return(
@@ -35,4 +39,27 @@ export default function Header({user}: {user: SessionUser}){
 
 		</section>
     )
+}
+
+export function PageHeader({
+	title
+}: {
+	title: string
+}){
+	const router = useRouter();
+
+	return(
+		<section className="flex items-center p-4">
+            <Button
+			onClick={() => router.back()}
+            variant={"icon"}
+            size={"xxs"}
+            >   
+                <span className="flex items-center gap-3 text-teal-deep text-[16px] font-medium">
+                <ChevronLeft className="size-6!"/>
+                <p>{title}</p>
+                </span>
+            </Button>
+        </section>
+	);
 }

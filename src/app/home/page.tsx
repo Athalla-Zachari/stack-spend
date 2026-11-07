@@ -1,13 +1,12 @@
+import { Suspense } from "react";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db, pockets } from "@/db";
 
-import { Button } from "@/components/ui/button";
-import { CircleDollarSign } from "lucide-react";
-import CardContainer from "./CardContainer";
+import CardContainer, { CardContainerSkeleton } from "./CardContainer";
 
-export default async function HomePage() {
+async function PocketsContent() {
 	const session = await getSession();
 
 	if (!session) {
@@ -19,9 +18,15 @@ export default async function HomePage() {
 		.from(pockets)
 		.where(eq(pockets.userId, session.id));
 
+	return <CardContainer pockets={userPockets} userName={session.displayName} />;
+}
+
+export default function HomePage() {
 	return (
 		<main className="w-full flex flex-col bg-beige">
-			<CardContainer pockets={userPockets} userName={session.displayName} />
+			<Suspense fallback={<CardContainerSkeleton />}>
+				<PocketsContent />
+			</Suspense>
 		</main>
 	);
 }
