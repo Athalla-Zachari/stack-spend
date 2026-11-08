@@ -91,7 +91,7 @@ export default function Numpad({
 				key === "000" ? "text-xl tracking-tight" : "text-3xl",
 				isBackspace
 					? "text-error hover:bg-error/10 active:bg-error/20 focus-visible:ring-2 focus-visible:ring-error"
-					: "text-teal-deep hover:bg-aqua-light/25 active:bg-aqua-light/50 focus-visible:ring-2 focus-visible:ring-teal-mid"
+					: "text-teal hover:bg-aqua-light/25 active:bg-aqua-light/50 focus-visible:ring-2 focus-visible:ring-teal-mid"
 				)}
 			>
 				{isBackspace ? <Delete className="size-7" /> : key}

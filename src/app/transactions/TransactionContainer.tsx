@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image, { type StaticImageData } from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import type { Pocket, Category } from "@/db/schema";
+import { createTransactionAction } from "@/app/actions/transactions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Toast } from "@/components/ui/toast";
 import Numpad from "@/components/ui/numpad";
 import {
 	Select,
@@ -30,12 +32,21 @@ const POCKET_LOGO_MAP: Record<string, StaticImageData> = {
 	spay: spayLogo,
 };
 
-const MAX_AMOUNT_DIGITS = 11; // Maksimal hingga ratusan miliar Rupiah
+const MAX_AMOUNT_DIGITS = 11; // Max ratusan miliar (amiin)
 
-interface TransferContainerProps {
+interface TransactionContainerProps {
 	pockets: Pocket[];
 	categories: Category[];
 	type?: Category["type"];
+}
+
+type ToastVariant = "error" | "warning" | "success" | "info";
+
+interface ToastState {
+	id: number;
+	isOpen: boolean;
+	message: string;
+	variant: ToastVariant;
 }
 
 function formatCategoryLabel(name: string) {
@@ -49,26 +60,58 @@ function formatRupiahInput(rawDigits: string): string {
 	return numeric.toLocaleString("id-ID");
 }
 
-export default function TransferContainer({
+export default function TransactionContainer({
 	pockets,
 	categories,
 	type,
-}: TransferContainerProps) {
+}: TransactionContainerProps) {
 	const router = useRouter();
+	const [state, formAction, isPending] = useActionState(
+		createTransactionAction,
+		null,
+	);
+
 	const [selectedPocketId, setSelectedPocketId] = useState<string>(
 		pockets[0]?.id ?? "",
 	);
 	const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
 		null,
 	);
+	const [note, setNote] = useState<string>("");
 	const [amount, setAmount] = useState<string>("");
 	const [isNumpadOpen, setIsNumpadOpen] = useState<boolean>(false);
+
+	const [toast, setToast] = useState<ToastState>({
+		id: 0,
+		isOpen: false,
+		message: "",
+		variant: "error",
+	});
+
+	const triggerToast = (message: string, variant: ToastVariant = "error") => {
+		setToast((prev) => ({
+			id: prev.id + 1,
+			isOpen: true,
+			message,
+			variant,
+		}));
+	};
+
+	const [prevActionState, setPrevActionState] = useState(state);
+
+	if (state !== prevActionState) {
+		setPrevActionState(state);
+		if (state?.error) {
+			triggerToast(state.error, "error");
+		} else if (state?.warning) {
+			triggerToast(state.warning, "warning");
+		}
+	}
 
 	const amountFieldRef = useRef<HTMLDivElement | null>(null);
 	const amountInputRef = useRef<HTMLInputElement | null>(null);
 	const numpadDrawerRef = useRef<HTMLDivElement | null>(null);
 
-	// Tutup numpad otomatis saat tap di luar area Numpad (& di luar kotak Amount)
 	useEffect(() => {
 		if (!isNumpadOpen) return;
 
@@ -179,7 +222,11 @@ export default function TransferContainer({
 				})}
 			</section>
 
-			<form className="w-full flex-1 flex flex-col gap-3 min-h-0">
+			<form
+				action={formAction}
+				onSubmit={() => setIsNumpadOpen(false)}
+				className="w-full flex-1 flex flex-col gap-3 min-h-0"
+			>
 				{/* Hidden values untuk submit ke Server Action */}
 				<input type="hidden" name="pocketId" value={selectedPocketId} />
 				<input type="hidden" name="amount" value={amount} />
@@ -249,8 +296,11 @@ export default function TransferContainer({
 						name="note"
 						type="text"
 						required
+						enterKeyHint="done"
+						value={note}
+						onChange={(e) => setNote(e.target.value)}
 						placeholder="Notes..."
-						className="px-3 py-3 rounded-xl border border-grey500 w-full outline-none focus:border-teal-deep focus:ring-1 focus:ring-teal-deep transition-all"
+						className="px-3 py-3 rounded-xl border border-grey500 w-full text-base outline-none focus:border-teal-deep focus:ring-1 focus:ring-teal-deep transition-all"
 					/>
 				</section>
 
@@ -296,21 +346,40 @@ export default function TransferContainer({
 						type="button"
 						variant="outline"
 						size="lg"
+						disabled={isPending}
 						onClick={() => router.back()}
 						className="flex-1"
 					>
 						Batal
 					</Button>
-					<Button type="submit" variant="solid" size="lg" className="flex-1">
-						Transfer
+					<Button
+						type="submit"
+						variant="solid"
+						size="lg"
+						disabled={isPending}
+						className="flex-1"
+					>
+						{isPending ? "Processing..." : "Transfer"}
 					</Button>
 				</section>
+
+				{toast.isOpen && (
+					<Toast
+						key={toast.id}
+						variant={toast.variant}
+						position="top-center"
+						isOpen={toast.isOpen}
+						onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
+						message={toast.message}
+					/>
+				)}
 			</form>
 
 			{/* Overlay Numpad clean: muncul saat input Amount ditekan & tutup saat tap di luar area */}
 			<AnimatePresence>
 				{isNumpadOpen && (
 					<motion.div
+						id="amount-numpad"
 						ref={numpadDrawerRef}
 						initial={{ y: "100%" }}
 						animate={{ y: 0 }}
@@ -332,7 +401,7 @@ export default function TransferContainer({
 	);
 }
 
-export function TransferContainerSkeleton() {
+export function TransactionContainerSkeleton() {
 	return (
 		<section className="w-full flex flex-col gap-3 min-h-[80vh] px-7 py-8 bg-white rounded-tl-4xl rounded-tr-4xl">
 			<div className="flex items-center gap-2">

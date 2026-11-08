@@ -1,4 +1,4 @@
-import { PiggyBank, BanknoteX, ReceiptText, LucideIcon } from "lucide-react";
+import { PiggyBank, BanknoteX, ReceiptText, LucideIcon, CalendarClock } from "lucide-react";
 import {
   CircleDollarSign,
   ArrowLeftRight,
@@ -18,9 +18,10 @@ export type menuConfig = {
 }
 
 export const menuList: menuConfig[] = [
-    { id: 1, label: "Savings", path: "/transfer", icon: PiggyBank },
+    { id: 1, label: "Savings", path: "/transactions", icon: PiggyBank },
     { id: 2, label: "Debts", path: "/debts", icon: BanknoteX },
     { id: 3, label: "Bills", path: "/transactions/bills", icon: ReceiptText },
+    { id: 4, label: "History", path: "/transactions/history", icon: CalendarClock },
 ]
 
 export type historyConfig = {

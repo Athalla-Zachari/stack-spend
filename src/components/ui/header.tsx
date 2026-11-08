@@ -9,7 +9,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Header({user}: {user: SessionUser}){
     return(
@@ -42,11 +42,15 @@ export default function Header({user}: {user: SessionUser}){
 }
 
 export function PageHeader({
-	title
+	title,
 }: {
-	title: string
+	title?: string;
 }){
 	const router = useRouter();
+	const pathname = usePathname();
+	const segment = pathname.split("/").filter(Boolean).pop() ?? "";
+	const displayTitle =
+		title ?? (segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : "");
 
 	return(
 		<section className="flex items-center p-4">
@@ -57,7 +61,7 @@ export function PageHeader({
             >   
                 <span className="flex items-center gap-3 text-teal-deep text-[16px] font-medium">
                 <ChevronLeft className="size-6!"/>
-                <p>{title}</p>
+                <p>{displayTitle}</p>
                 </span>
             </Button>
         </section>

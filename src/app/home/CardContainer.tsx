@@ -8,8 +8,8 @@ import { menuList } from "./menu";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-    BanknoteArrowUp, 
-    BanknoteArrowDown, 
+    CreditCardPlus,
+    ArrowLeftRight,  
     Eye,
     EyeOff 
 } from "lucide-react";
@@ -58,19 +58,18 @@ export default function CardContainer({
 
             <div className="flex items-center gap-2">
             <Button
-            onClick={() => router.push("/transfer")}
+            onClick={() => router.push("/transactions")}
             variant={"icon"}
-            size={"icon"}
             className={"bg-teal-mid p-2 h-max w-max text-aqua-light"}
             >
-                <BanknoteArrowUp className="size-5!" />
+                <CreditCardPlus className="size-7!" />
             </Button>
             <Button
+            onClick={() => router.push("/transactions/transfer")}
             variant={"icon"}
-            size={"icon"}
-            className={"bg-teal-mid p-2 h-max w-max text-aqua-light"}
+            className={"bg-teal-mid p-2.5 h-max w-max text-aqua-light"}
             >
-                <BanknoteArrowDown className="size-5!" />
+                <ArrowLeftRight className="size-6!" />
             </Button>
             </div>
         </div>
