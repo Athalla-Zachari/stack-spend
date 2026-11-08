@@ -205,13 +205,13 @@ export async function createTransferAction(
 		const newDestinationBalance = currentDestinationBalance + numericAmount;
 		const transactionDate = getJakartaDateString();
 
-		// Karena kategori "transfer" bertipe "income", pocketId menyimpan pocket penerima (+amount)
-		// dan relatedPocketId menyimpan pocket pengirim (-amount) agar konsisten di seluruh tabel.
+		// Karena kategori "transfer" bertipe "expense", pocketId menyimpan pocket pengirim (-amount)
+		// dan relatedPocketId menyimpan pocket penerima (+amount).
 		await db.batch([
 			db.insert(transactions).values({
 				userId: session.id,
-				pocketId: destinationPocket.id,
-				relatedPocketId: sourcePocket.id,
+				pocketId: sourcePocket.id,
+				relatedPocketId: destinationPocket.id,
 				categoryId: transferCategory.id,
 				amount: String(numericAmount),
 				transactionDate,

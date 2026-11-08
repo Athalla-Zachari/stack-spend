@@ -20,12 +20,12 @@ const categoriesToSeed = [
     type: "income",
     description: "Gaji bulanan atau upah kerja",
   },
+  // Expense
   {
     name: "transfer",
-    type: "income",
-    description: "Transfer uang masuk dari akun lain",
+    type: "expense",
+    description: "Transfer uang keluar ke rekening lain",
   },
-  // Expense
   {
     name: "beverages",
     type: "expense",

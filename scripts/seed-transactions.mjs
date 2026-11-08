@@ -94,8 +94,8 @@ async function seedTransactions() {
       },
       {
         categoryName: "transfer",
-        pocket: spayPocket,
-        relatedPocket: bcaPocket,
+        pocket: bcaPocket,
+        relatedPocket: spayPocket,
         amount: 500000,
         transactionDate: "2026-11-02",
         note: "Top up ShopeePay dari BCA",
