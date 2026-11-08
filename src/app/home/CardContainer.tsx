@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Pocket } from "@/db/schema";
-import { menuList } from "./menu";
+import { menuList } from "@/components/style-config";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

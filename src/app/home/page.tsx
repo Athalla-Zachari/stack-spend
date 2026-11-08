@@ -3,7 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { getUserPockets, getUserTransactions } from "@/db/queries";
 
 import CardContainer, { CardContainerSkeleton } from "./CardContainer";
-import HistoryContainer, { HistoryContainerSkeleton } from "./HistoryContainer";
+import HistoryContainer, { HistoryContainerSkeleton } from "@/app/history/HistoryContainer";
 
 async function PocketsSection() {
 	const [session, userPockets] = await Promise.all([

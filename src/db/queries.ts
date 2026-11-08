@@ -17,11 +17,24 @@ export const getCategories = cache(async () => {
   return db.select().from(categories);
 });
 
-export const getUserTransactions = cache(async () => {
+export interface TransactionWithDetails {
+  id: string;
+  amount: string;
+  transactionDate: string;
+  note: string | null;
+  categoryName: string;
+  categoryType: "income" | "expense";
+  pocketId: string;
+  pocketName: string;
+  relatedPocketId: string | null;
+  relatedPocketName: string | null;
+}
+
+export const getUserTransactions = cache(async (): Promise<TransactionWithDetails[]> => {
   const session = await requireSession();
   const relatedPockets = alias(pockets, "related_pockets");
 
-  return db
+  const rawTransactions = await db
     .select({
       id: transactions.id,
       amount: transactions.amount,
@@ -43,8 +56,45 @@ export const getUserTransactions = cache(async () => {
       desc(transactions.transactionDate),
       sql`"transactions"."rowid" DESC`
     );
-});
 
-export type TransactionWithDetails = Awaited<
-  ReturnType<typeof getUserTransactions>
->[number];
+  const transactionsList: TransactionWithDetails[] = [];
+
+  for (const tx of rawTransactions) {
+    if (tx.relatedPocketId && tx.relatedPocketName) {
+      // 1. Entry expense untuk pocket sumber (outflow)
+      transactionsList.push({
+        id: `${tx.id}-out`,
+        amount: tx.amount,
+        transactionDate: tx.transactionDate,
+        note: tx.note,
+        categoryName: tx.categoryName,
+        categoryType: "expense",
+        pocketId: tx.pocketId,
+        pocketName: tx.pocketName,
+        relatedPocketId: tx.relatedPocketId,
+        relatedPocketName: tx.relatedPocketName,
+      });
+
+      // 2. Entry income untuk pocket tujuan (inflow)
+      transactionsList.push({
+        id: `${tx.id}-in`,
+        amount: tx.amount,
+        transactionDate: tx.transactionDate,
+        note: tx.note,
+        categoryName: tx.categoryName,
+        categoryType: "income",
+        pocketId: tx.relatedPocketId,
+        pocketName: tx.relatedPocketName,
+        relatedPocketId: tx.pocketId,
+        relatedPocketName: tx.pocketName,
+      });
+    } else {
+      transactionsList.push({
+        ...tx,
+        categoryType: tx.categoryType as "income" | "expense",
+      });
+    }
+  }
+
+  return transactionsList;
+});

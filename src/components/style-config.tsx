@@ -21,7 +21,7 @@ export const menuList: menuConfig[] = [
     { id: 1, label: "Savings", path: "/transactions", icon: PiggyBank },
     { id: 2, label: "Debts", path: "/debts", icon: BanknoteX },
     { id: 3, label: "Bills", path: "/transactions/bills", icon: ReceiptText },
-    { id: 4, label: "History", path: "/transactions/history", icon: CalendarClock },
+    { id: 4, label: "History", path: "/history", icon: CalendarClock },
 ]
 
 export type historyConfig = {

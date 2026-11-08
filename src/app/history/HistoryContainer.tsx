@@ -1,17 +1,20 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { TransactionWithDetails } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RunningText } from "@/components/ui/running-text";
-import { historyConfigMap, defaultHistoryList } from "./menu";
+import { historyConfigMap, defaultHistoryList } from "@/components/style-config";
 
 import EmptyLogo from "../../../public/assets/no-data.svg";
 import { Dot } from "lucide-react";
 
 interface HistoryContainerProps {
   transactions: TransactionWithDetails[];
+  limit?: number;
+  showSeeAll?: boolean;
 }
 
 function formatTransactionDate(dateStr: string): string {
@@ -25,15 +28,28 @@ function formatTransactionDate(dateStr: string): string {
 
 export default function HistoryContainer({
   transactions,
+  limit = 5,
+  showSeeAll = true,
 }: HistoryContainerProps) {
+  const router = useRouter();
+  const displayedTransactions =
+    typeof limit === "number" && limit > 0
+      ? transactions.slice(0, limit)
+      : transactions;
+
     return (
-        <section className="py-2 bg-white flex flex-col gap-2">
+        <section className="py-2 flex flex-col gap-2">
         <div className="flex items-center justify-between">
             <h1 className="font-medium text-lg text-charcoal tracking-tight">
             Transaction History
             </h1>
-            {transactions.length > 0 && (
-            <Button variant={"icon"} size={"xxs"} className={"text-subtext"}>
+            {showSeeAll && transactions.length > 0 && (
+            <Button
+                onClick={() => router.push("/history")}
+                variant={"icon"}
+                size={"xxs"}
+                className={"text-subtext cursor-pointer"}
+            >
                 See All
             </Button>
             )}
@@ -43,7 +59,7 @@ export default function HistoryContainer({
             {transactions.length === 0 ? (
             <NoHistoryEntry />
             ) : (
-            transactions.map((tx) => {
+            displayedTransactions.map((tx) => {
                 const config =
                 historyConfigMap[tx.categoryName.toLowerCase()] ??
                 defaultHistoryList;
@@ -104,7 +120,7 @@ export function HistoryContainerSkeleton() {
             <Skeleton className="h-4 w-12" />
         </div>
         <div className="flex flex-col gap-2 w-full">
-            {[1, 2, 3].map((item) => (
+            {[1, 2, 3, 4, 5].map((item) => (
             <div
                 key={item}
                 className="w-full rounded-xl shadow-lg p-3 flex items-center gap-3 bg-white"

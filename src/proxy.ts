@@ -9,7 +9,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  if ((pathname.startsWith("/home") || pathname.startsWith("/transactions")) && !sessionCookie?.value) {
+  if (
+    (pathname.startsWith("/home") ||
+      pathname.startsWith("/transactions") ||
+      pathname.startsWith("/history")) &&
+    !sessionCookie?.value
+  ) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -17,5 +22,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/home/:path*", "/transactions/:path*"],
+  matcher: ["/", "/home/:path*", "/transactions/:path*", "/history/:path*"],
 };
