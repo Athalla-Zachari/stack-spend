@@ -22,7 +22,7 @@ async function HistorySection() {
 
 export default function HomePage() {
 	return (
-		<main className="w-full flex flex-col bg-white gap-4">
+		<main className="w-full flex flex-col bg-none gap-4">
 			<Suspense fallback={<CardContainerSkeleton />}>
 				<PocketsSection />
 			</Suspense>

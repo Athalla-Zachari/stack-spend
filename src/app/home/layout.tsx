@@ -27,7 +27,7 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
 	return (
-		<div className="min-h-screen w-full flex flex-col font-sans overflow-x-hidden">
+		<div className="min-h-screen w-full flex flex-col font-sans overflow-x-hidden bg-mist">
 			<Suspense fallback={<HeaderSkeleton />}>
 				<AuthenticatedHeader />
 			</Suspense>

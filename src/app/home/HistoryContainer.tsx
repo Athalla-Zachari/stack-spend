@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RunningText } from "@/components/ui/running-text";
 import { historyConfigMap, defaultHistoryList } from "./menu";
+import { Dot } from "lucide-react";
 
 interface HistoryContainerProps {
   transactions: TransactionWithDetails[];
@@ -23,7 +24,7 @@ export default function HistoryContainer({
   transactions,
 }: HistoryContainerProps) {
     return (
-        <section className="py-2 bg-white flex flex-col gap-2">
+        <section className="py-2  flex flex-col gap-2">
         <div className="flex items-center justify-between">
             <h1 className="font-medium text-lg text-charcoal tracking-tight">
             Transaction History
@@ -60,20 +61,29 @@ export default function HistoryContainer({
                     <Icon className="size-7!" />
                     </span>
 
-                    <div className="flex-1 min-w-0 flex flex-col gap-0.5 leading-tight">
+                    <div className="flex-1 min-w-0 flex flex-col gap-px">
                     <RunningText
-                    as="h3"
-                    className="font-semibold text-sm text-teal-deep"
+                        as="h3"
+                        className="font-semibold text-lg/tight text-teal-deep"
                     >
                         {tx.note || tx.categoryName}
                     </RunningText>
-                    <RunningText
-                        as="h4"
-                        className="text-xs text-charcoal font-medium capitalize"
-                    >
-                        {tx.categoryName}
-                    </RunningText>
-                    <RunningText as="h5" className="text-xs text-grey500">
+                    <div className="flex items-center min-w-0 text-xs/tight text-charcoal font-medium">
+                        <span className="shrink-0 uppercase">
+                            {tx.pocketName}
+                        </span>
+                        <Dot
+                            aria-hidden="true"
+                            className="size-3.5 shrink-0 -mx-0.5 text-grey500"
+                        />
+                        <RunningText
+                            as="span"
+                            className="flex-1 min-w-0 capitalize leading-tight"
+                        >
+                            {tx.categoryName}
+                        </RunningText>
+                    </div>
+                    <RunningText as="p" className="text-xs/tight text-grey500">
                         {formatTransactionDate(tx.transactionDate)}
                     </RunningText>
                     </div>
@@ -108,9 +118,12 @@ export function HistoryContainerSkeleton() {
             className="w-full rounded-xl shadow-lg p-3 flex items-center gap-3 bg-white"
             >
                 <Skeleton className="size-11 shrink-0 rounded-xl" />
-                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
                 <Skeleton className="h-3.5 w-32" />
-                <Skeleton className="h-3 w-16" />
+                <div className="flex items-center gap-1.5">
+                    <Skeleton className="h-3 w-10" />
+                    <Skeleton className="h-3 w-16" />
+                </div>
                 <Skeleton className="h-3 w-20" />
                 </div>
                 <Skeleton className="h-5 w-24 shrink-0" />

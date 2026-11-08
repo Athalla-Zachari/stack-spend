@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image, { type StaticImageData } from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import type { Pocket } from "@/db/schema";
+import { createTransferAction } from "@/app/actions/transactions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Toast } from "@/components/ui/toast";
 import Numpad from "@/components/ui/numpad";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 import bcaLogo from "../../../../public/assets/BCA.webp";
 import bniLogo from "../../../../public/assets/BNI.webp";
@@ -27,6 +37,19 @@ interface TransferContainerProps {
 	pockets: Pocket[];
 }
 
+type ToastVariant = "error" | "warning" | "success" | "info";
+
+interface ToastState {
+	id: number;
+	isOpen: boolean;
+	message: string;
+	variant: ToastVariant;
+}
+
+function formatPocketLabel(name: string): string {
+	return name.toUpperCase();
+}
+
 function formatRupiahInput(rawDigits: string): string {
 	if (!rawDigits) return "";
 	const numeric = Number(rawDigits);
@@ -36,12 +59,45 @@ function formatRupiahInput(rawDigits: string): string {
 
 export default function TransferContainer({ pockets }: TransferContainerProps) {
 	const router = useRouter();
+	const [state, formAction, isPending] = useActionState(
+		createTransferAction,
+		null,
+	);
+
 	const [selectedPocketId, setSelectedPocketId] = useState<string>(
 		pockets[0]?.id ?? "",
 	);
+	const [targetPocketId, setTargetPocketId] = useState<string | null>(null);
 	const [note, setNote] = useState<string>("");
 	const [amount, setAmount] = useState<string>("");
 	const [isNumpadOpen, setIsNumpadOpen] = useState<boolean>(false);
+
+	const [toast, setToast] = useState<ToastState>({
+		id: 0,
+		isOpen: false,
+		message: "",
+		variant: "error",
+	});
+
+	const triggerToast = (message: string, variant: ToastVariant = "error") => {
+		setToast((prev) => ({
+			id: prev.id + 1,
+			isOpen: true,
+			message,
+			variant,
+		}));
+	};
+
+	const [prevActionState, setPrevActionState] = useState(state);
+
+	if (state !== prevActionState) {
+		setPrevActionState(state);
+		if (state?.error) {
+			triggerToast(state.error, "error");
+		} else if (state?.warning) {
+			triggerToast(state.warning, "warning");
+		}
+	}
 
 	const amountFieldRef = useRef<HTMLDivElement | null>(null);
 	const amountInputRef = useRef<HTMLInputElement | null>(null);
@@ -80,6 +136,24 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 			document.removeEventListener("pointerdown", handlePointerDownOutside);
 		};
 	}, [isNumpadOpen]);
+
+	const destinationPockets = pockets.filter(
+		(pocket) => pocket.id !== selectedPocketId,
+	);
+
+	const destinationPocketItems = Object.fromEntries(
+		destinationPockets.map((pocket) => [
+			pocket.id,
+			formatPocketLabel(pocket.name),
+		]),
+	);
+
+	const handleSelectSourcePocket = (pocketId: string) => {
+		setSelectedPocketId(pocketId);
+		if (targetPocketId === pocketId) {
+			setTargetPocketId(null);
+		}
+	};
 
 	const formattedAmount = formatRupiahInput(amount);
 	const amountTextSizeClass =
@@ -126,7 +200,7 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 							key={pocket.id}
 							type="button"
 							variant={"outline"}
-							onClick={() => setSelectedPocketId(pocket.id)}
+							onClick={() => handleSelectSourcePocket(pocket.id)}
 							className={`h-9 py-2 transition-all hover:cursor-pointer ${
 								isSelected
 									? "border-teal-mid bg-teal/10"
@@ -150,17 +224,43 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 			</section>
 
 			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					setIsNumpadOpen(false);
-				}}
+				action={formAction}
+				onSubmit={() => setIsNumpadOpen(false)}
 				className="w-full flex-1 flex flex-col gap-3 min-h-0"
 			>
 				<input type="hidden" name="pocketId" value={selectedPocketId} />
 				<input type="hidden" name="amount" value={amount} />
 
 				{/* Destination pocket selector area */}
-				<section className="flex flex-col gap-1.5 shrink-0"></section>
+				<section className="flex flex-col gap-1.5 shrink-0">
+					<label
+						htmlFor="relatedPocketId"
+						className="font-semibold text-[15px] text-teal-deep"
+					>
+						Destination Pocket
+					</label>
+					<Select
+						id="relatedPocketId"
+						name="relatedPocketId"
+						required
+						items={destinationPocketItems}
+						value={targetPocketId}
+						onValueChange={(value) => setTargetPocketId(value)}
+					>
+						<SelectTrigger className="w-full h-auto! px-3 py-3 rounded-xl border-grey500 text-base">
+							<SelectValue placeholder="Select Pocket..." />
+						</SelectTrigger>
+						<SelectContent alignItemWithTrigger={false}>
+							<SelectGroup>
+								{destinationPockets.map((pocket) => (
+									<SelectItem key={pocket.id} value={pocket.id}>
+										{formatPocketLabel(pocket.name)}
+									</SelectItem>
+								))}
+							</SelectGroup>
+						</SelectContent>
+					</Select>
+				</section>
 
 				<section className="flex flex-col gap-1.5 shrink-0">
 					<label
@@ -223,15 +323,33 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 						type="button"
 						variant="outline"
 						size="lg"
+						disabled={isPending}
 						onClick={() => router.back()}
 						className="flex-1"
 					>
 						Batal
 					</Button>
-					<Button type="submit" variant="solid" size="lg" className="flex-1">
-						Transfer
+					<Button
+						type="submit"
+						variant="solid"
+						size="lg"
+						disabled={isPending}
+						className="flex-1"
+					>
+						{isPending ? "Processing..." : "Transfer"}
 					</Button>
 				</section>
+
+				{toast.isOpen && (
+					<Toast
+						key={toast.id}
+						variant={toast.variant}
+						position="top-center"
+						isOpen={toast.isOpen}
+						onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
+						message={toast.message}
+					/>
+				)}
 			</form>
 
 			<AnimatePresence>

@@ -118,5 +118,130 @@ export async function createTransactionAction(
 
 	revalidatePath("/home");
 	revalidatePath("/transactions");
+	revalidatePath("/transactions/transfer");
+	redirect("/home");
+}
+
+export async function createTransferAction(
+	_prevState: TransactionActionState | null,
+	formData: FormData,
+): Promise<TransactionActionState> {
+	const session = await requireSession();
+
+	const sourcePocketId = formData.get("pocketId")?.toString().trim() ?? "";
+	const destinationPocketId =
+		formData.get("relatedPocketId")?.toString().trim() ?? "";
+	const note = formData.get("note")?.toString().trim() ?? "";
+	const rawAmount = formData.get("amount")?.toString().trim() ?? "";
+
+	if (!sourcePocketId) {
+		return { error: "Silakan pilih pocket sumber terlebih dahulu." };
+	}
+
+	if (!destinationPocketId) {
+		return { error: "Silakan pilih pocket tujuan terlebih dahulu." };
+	}
+
+	if (sourcePocketId === destinationPocketId) {
+		return { error: "Pocket sumber dan pocket tujuan tidak boleh sama." };
+	}
+
+	if (!note) {
+		return { error: "Silakan isi catatan transfer." };
+	}
+
+	if (!rawAmount || !/^\d+$/.test(rawAmount)) {
+		return { error: "Nominal transfer harus lebih dari IDR 0." };
+	}
+
+	const numericAmount = Number(rawAmount);
+	if (!Number.isSafeInteger(numericAmount) || numericAmount <= 0) {
+		return { error: "Nominal transfer harus lebih dari IDR 0." };
+	}
+
+	try {
+		const [sourcePocket, destinationPocket, transferCategory] =
+			await Promise.all([
+				db
+					.select()
+					.from(pockets)
+					.where(
+						and(eq(pockets.id, sourcePocketId), eq(pockets.userId, session.id)),
+					)
+					.get(),
+				db
+					.select()
+					.from(pockets)
+					.where(
+						and(
+							eq(pockets.id, destinationPocketId),
+							eq(pockets.userId, session.id),
+						),
+					)
+					.get(),
+				db
+					.select()
+					.from(categories)
+					.where(eq(categories.name, "transfer"))
+					.get(),
+			]);
+
+		if (!sourcePocket || !destinationPocket) {
+			return { error: "Pocket sumber atau tujuan tidak valid." };
+		}
+
+		if (!transferCategory) {
+			return { error: "Kategori transfer tidak ditemukan." };
+		}
+
+		const currentSourceBalance = Number(sourcePocket.balance || 0);
+
+		if (numericAmount > currentSourceBalance) {
+			return { error: "Saldo pocket tidak mencukupi" };
+		}
+
+		const currentDestinationBalance = Number(destinationPocket.balance || 0);
+		const newSourceBalance = currentSourceBalance - numericAmount;
+		const newDestinationBalance = currentDestinationBalance + numericAmount;
+		const transactionDate = getJakartaDateString();
+
+		// Karena kategori "transfer" bertipe "income", pocketId menyimpan pocket penerima (+amount)
+		// dan relatedPocketId menyimpan pocket pengirim (-amount) agar konsisten di seluruh tabel.
+		await db.batch([
+			db.insert(transactions).values({
+				userId: session.id,
+				pocketId: destinationPocket.id,
+				relatedPocketId: sourcePocket.id,
+				categoryId: transferCategory.id,
+				amount: String(numericAmount),
+				transactionDate,
+				note,
+			}),
+			db
+				.update(pockets)
+				.set({ balance: String(newSourceBalance) })
+				.where(
+					and(eq(pockets.id, sourcePocket.id), eq(pockets.userId, session.id)),
+				),
+			db
+				.update(pockets)
+				.set({ balance: String(newDestinationBalance) })
+				.where(
+					and(
+						eq(pockets.id, destinationPocket.id),
+						eq(pockets.userId, session.id),
+					),
+				),
+		]);
+	} catch (err) {
+		console.error("Create pocket transfer error:", err);
+		return {
+			error: "Terjadi kesalahan saat memproses transfer. Coba lagi nanti.",
+		};
+	}
+
+	revalidatePath("/home");
+	revalidatePath("/transactions");
+	revalidatePath("/transactions/transfer");
 	redirect("/home");
 }
