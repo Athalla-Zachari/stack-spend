@@ -15,16 +15,20 @@ function PageHeaderSkeleton() {
   );
 }
 
-export default async function HistoryLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+async function CardSelectorSection() {
   const [session, pockets] = await Promise.all([
     requireSession(),
     getUserPockets(),
   ]);
 
+  return <CardSelector pockets={pockets} userName={session.displayName} />;
+}
+
+export default function HistoryLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-h-screen w-full flex flex-col gap-10 font-sans overflow-x-hidden bg-aqua-light">
       <Suspense fallback={<PageHeaderSkeleton />}>
@@ -32,7 +36,7 @@ export default async function HistoryLayout({
       </Suspense>
       <section className="w-full px-6">
         <Suspense fallback={<PocketCardSkeleton />}>
-          <CardSelector pockets={pockets} userName={session.displayName} />
+          <CardSelectorSection />
         </Suspense>
       </section>
       <div className="flex-1 w-full flex flex-col bg-white rounded-tl-4xl rounded-tr-4xl px-7 py-6 pt-8">
