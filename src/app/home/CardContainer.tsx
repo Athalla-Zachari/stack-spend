@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Pocket } from "@/db/schema";
 import { menuList } from "@/components/style-config";
+import { PocketCardSkeleton } from "@/components/PocketCard";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -120,19 +121,7 @@ export function CardContainerSkeleton() {
 
             {/* Middle: Pocket Card Skeleton */}
             <div className="py-3">
-                <div className="w-full rounded-xl p-5 flex flex-col justify-between gap-3 bg-grey100">
-                    <div className="flex items-center gap-2">
-                        <Skeleton className="h-6 w-40" />
-                        <Skeleton className="size-6 rounded-md" />
-                    </div>
-
-                    <div className="w-full flex justify-between items-center">
-                        <Skeleton className="h-10 w-12 rounded-md" />
-                        <Skeleton className="size-24 rounded-xl" />
-                    </div>
-
-                    <Skeleton className="h-4 w-48" />
-                </div>
+                <PocketCardSkeleton />
             </div>
 
             {/* Bottom: Inside Navigation Skeleton */}

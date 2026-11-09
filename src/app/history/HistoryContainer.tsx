@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { TransactionWithDetails } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,8 @@ export default function HistoryContainer({
   showFilter = false,
 }: HistoryContainerProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedPocket = searchParams.get("pocket");
 
   // Inisialisasi tanggal aktif (prioritas dari transaksi terbaru, fallback ke tanggal hari ini)
   const [currentDate, setCurrentDate] = useState<Date>(() => {
@@ -100,12 +102,21 @@ export default function HistoryContainer({
     setCurrentDate((prev) => new Date(newYear, prev.getMonth(), 1));
   };
 
-  // Filter transaksi berdasarkan bulan dan tahun terpilih
+  // Filter transaksi berdasarkan bulan, tahun, dan pocket terpilih
   const filteredTransactions = useMemo(() => {
-    if (!showFilter) return transactions;
-    const targetPrefix = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`;
-    return transactions.filter((tx) => tx.transactionDate.startsWith(targetPrefix));
-  }, [transactions, showFilter, selectedYear, selectedMonth]);
+    return transactions.filter((tx) => {
+      const matchDate = showFilter
+        ? tx.transactionDate.startsWith(
+            `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`
+          )
+        : true;
+      const matchPocket =
+        selectedPocket && selectedPocket !== "all"
+          ? tx.pocketId === selectedPocket
+          : true;
+      return matchDate && matchPocket;
+    });
+  }, [transactions, showFilter, selectedYear, selectedMonth, selectedPocket]);
 
   const displayedTransactions =
     typeof limit === "number" && limit > 0
