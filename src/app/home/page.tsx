@@ -17,7 +17,7 @@ async function PocketsSection() {
 async function HistorySection() {
 	const transactions = await getUserTransactions();
 
-	return <HistoryContainer transactions={transactions}/>
+	return <HistoryContainer transactions={transactions} showSeeAll={true}/>
 }
 
 export default function HomePage() {

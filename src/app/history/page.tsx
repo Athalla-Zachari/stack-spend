@@ -12,6 +12,7 @@ async function HistorySection() {
       transactions={transactions}
       limit={0}
       showSeeAll={false}
+      showFilter={true}
     />
   );
 }

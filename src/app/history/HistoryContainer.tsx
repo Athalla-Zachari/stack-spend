@@ -1,11 +1,13 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { TransactionWithDetails } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RunningText } from "@/components/ui/running-text";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { historyConfigMap, defaultHistoryList } from "@/components/style-config";
 
 import EmptyLogo from "../../../public/assets/no-data.svg";
@@ -15,7 +17,23 @@ interface HistoryContainerProps {
   transactions: TransactionWithDetails[];
   limit?: number;
   showSeeAll?: boolean;
+  showFilter?: boolean;
 }
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function formatTransactionDate(dateStr: string): string {
   const parts = dateStr.split("-");
@@ -29,87 +47,194 @@ function formatTransactionDate(dateStr: string): string {
 export default function HistoryContainer({
   transactions,
   limit = 5,
-  showSeeAll = true,
+  showSeeAll = false,
+  showFilter = false,
 }: HistoryContainerProps) {
   const router = useRouter();
+
+  // Inisialisasi tanggal aktif (prioritas dari transaksi terbaru, fallback ke tanggal hari ini)
+  const [currentDate, setCurrentDate] = useState<Date>(() => {
+    if (transactions.length > 0 && transactions[0].transactionDate) {
+      const parts = transactions[0].transactionDate.split("-");
+      if (parts.length >= 2) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        if (!isNaN(y) && !isNaN(m) && m >= 0 && m <= 11) {
+          return new Date(y, m, 1);
+        }
+      }
+    }
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+
+  const selectedMonth = currentDate.getMonth();
+  const selectedYear = currentDate.getFullYear();
+
+  // Opsi daftar tahun dinamis berdasarkan data transaksi dan tahun saat ini
+  const availableYears = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const txYears = transactions
+      .map((tx) => parseInt(tx.transactionDate.split("-")[0], 10))
+      .filter((y) => !isNaN(y));
+
+    const minYear = Math.min(currentYear - 3, ...txYears);
+    const maxYear = Math.max(currentYear + 1, ...txYears);
+
+    const years: number[] = [];
+    for (let y = maxYear; y >= minYear; y--) {
+      years.push(y);
+    }
+    return years;
+  }, [transactions]);
+
+  const handlePrevMonth = () => {
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const handleYearChange = (newYear: number) => {
+    setCurrentDate((prev) => new Date(newYear, prev.getMonth(), 1));
+  };
+
+  // Filter transaksi berdasarkan bulan dan tahun terpilih
+  const filteredTransactions = useMemo(() => {
+    if (!showFilter) return transactions;
+    const targetPrefix = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`;
+    return transactions.filter((tx) => tx.transactionDate.startsWith(targetPrefix));
+  }, [transactions, showFilter, selectedYear, selectedMonth]);
+
   const displayedTransactions =
     typeof limit === "number" && limit > 0
-      ? transactions.slice(0, limit)
-      : transactions;
+      ? filteredTransactions.slice(0, limit)
+      : filteredTransactions;
 
-    return (
-        <section className="py-2 flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-            <h1 className="font-medium text-lg text-charcoal tracking-tight">
-            Transaction History
-            </h1>
-            {showSeeAll && transactions.length > 0 && (
+  return (
+    <section className="py-2 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h1 className="font-medium text-lg text-charcoal tracking-tight">
+          Transaction History
+        </h1>
+
+        {showSeeAll && transactions.length > 0 && (
+          <Button
+            onClick={() => router.push("/history")}
+            variant={"icon"}
+            size={"xxs"}
+            className={"text-subtext cursor-pointer"}
+          >
+            See All
+          </Button>
+        )}
+      </div>
+
+      {showFilter && transactions.length > 0 && (
+        <div className="flex justify-between items-center border border-charcoal text-charcoal font-semibold rounded-full px-2 py-1">
+          <Button
+            type="button"
+            variant={"icon"}
+            size={"icon"}
+            onClick={handlePrevMonth}
+            aria-label="Previous Month"
+            className="cursor-pointer hover:bg-grey100 rounded-full"
+          >
+            <ChevronLeft className="size-5" />
+          </Button>
+
+          <div className="relative flex items-center justify-center">
             <Button
-                onClick={() => router.push("/history")}
-                variant={"icon"}
-                size={"xxs"}
-                className={"text-subtext cursor-pointer"}
+              type="button"
+              variant={"icon"}
+              className="flex items-center gap-1 w-fit text-[16px] text-charcoal font-semibold cursor-pointer px-3 py-1"
             >
-                See All
+              <span>{MONTH_NAMES[selectedMonth]} {selectedYear}</span>
+              <ChevronDown className="size-4 shrink-0" />
             </Button>
-            )}
+            <select
+              aria-label="Select Year"
+              value={selectedYear}
+              onChange={(e) => handleYearChange(Number(e.target.value))}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
+            >
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <Button
+            type="button"
+            variant={"icon"}
+            size={"icon"}
+            onClick={handleNextMonth}
+            aria-label="Next Month"
+            className="cursor-pointer hover:bg-grey100 rounded-full"
+          >
+            <ChevronRight className="size-5" />
+          </Button>
         </div>
+      )}
 
-        <section className="flex flex-col gap-2 w-full">
-            {transactions.length === 0 ? (
-            <NoHistoryEntry />
-            ) : (
-            displayedTransactions.map((tx) => {
-                const config =
-                historyConfigMap[tx.categoryName.toLowerCase()] ??
-                defaultHistoryList;
-                const Icon = config.icon;
-                const isIncome = tx.categoryType === "income";
-                const formattedAmount = Number(tx.amount || 0).toLocaleString(
-                "id-ID",
-                );
+      <section className="flex flex-col gap-2 w-full">
+        {displayedTransactions.length === 0 ? (
+          <NoHistoryEntry />
+        ) : (
+          displayedTransactions.map((tx) => {
+            const config =
+              historyConfigMap[tx.categoryName.toLowerCase()] ??
+              defaultHistoryList;
+            const Icon = config.icon;
+            const isIncome = tx.categoryType === "income";
+            const formattedAmount = Number(tx.amount || 0).toLocaleString(
+              "id-ID",
+            );
 
-                return (
-                <div
+            return (
+              <div
                 key={tx.id}
                 className="w-full rounded-xl shadow-lg p-3 flex items-center gap-3 bg-white"
-                >
-                    <span className={`shrink-0 flex items-center justify-center rounded-xl p-2 ${config.bgColor} ${config.iconColor}`}>
-                    <Icon className="size-7!" />
-                    </span>
+              >
+                <span className={`shrink-0 flex items-center justify-center rounded-xl p-2 ${config.bgColor} ${config.iconColor}`}>
+                  <Icon className="size-7!" />
+                </span>
 
-                    <div className="flex-1 min-w-0 flex flex-col gap-px">
-                    <RunningText as="h3" className="font-semibold text-lg/tight text-teal-deep">
-                        {tx.note || tx.categoryName}
+                <div className="flex-1 min-w-0 flex flex-col gap-px">
+                  <RunningText as="h3" className="font-semibold text-lg/tight text-teal-deep">
+                    {tx.note || tx.categoryName}
+                  </RunningText>
+
+                  <div className="flex items-center min-w-0 text-xs/tight text-charcoal font-medium">
+                    <span className="shrink-0 uppercase">{tx.pocketName}</span>
+                    <Dot aria-hidden="true" className="size-3.5 shrink-0 -mx-0.5 text-grey500" />
+                    <RunningText as="span" className="flex-1 min-w-0 capitalize leading-tight">
+                      {tx.categoryName}
                     </RunningText>
+                  </div>
 
-                    <div className="flex items-center min-w-0 text-xs/tight text-charcoal font-medium">
-                        <span className="shrink-0 uppercase">{tx.pocketName}</span>
-                        <Dot aria-hidden="true" className="size-3.5 shrink-0 -mx-0.5 text-grey500"/>
-                        <RunningText as="span" className="flex-1 min-w-0 capitalize leading-tight">
-                            {tx.categoryName}
-                        </RunningText>
-                    </div>
-
-                    <RunningText as="p" className="text-xs/tight text-grey500">
-                        {formatTransactionDate(tx.transactionDate)}
-                    </RunningText>
-                    </div>
-
-                    <span
-                    className={`shrink-0 whitespace-nowrap text-right text-[17px] font-bold ${
-                        isIncome ? "text-green" : "text-error"
-                    }`}
-                    >
-                    {isIncome ? "+" : "-"}IDR {formattedAmount}
-                    </span>
+                  <RunningText as="p" className="text-xs/tight text-grey500">
+                    {formatTransactionDate(tx.transactionDate)}
+                  </RunningText>
                 </div>
-                );
-            })
-            )}
-        </section>
-        </section>
-    );
+
+                <span
+                  className={`shrink-0 whitespace-nowrap text-right text-[17px] font-bold ${
+                    isIncome ? "text-green" : "text-error"
+                  }`}
+                >
+                  {isIncome ? "+" : "-"}IDR {formattedAmount}
+                </span>
+              </div>
+            );
+          })
+        )}
+      </section>
+    </section>
+  );
 }
 
 export function HistoryContainerSkeleton() {
@@ -144,7 +269,7 @@ export function HistoryContainerSkeleton() {
 
 export function NoHistoryEntry() {
     return (
-        <section className="flex flex-col items-center gap-2 p-5 py-10">
+        <section className="flex-1 flex flex-col items-center gap-2 p-5 py-18">
         <Image
             src={EmptyLogo}
             alt="empty-state"
