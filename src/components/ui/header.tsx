@@ -55,7 +55,7 @@ export function PageHeader({
 	return(
 		<section className="flex items-center p-4">
             <Button
-			onClick={() => router.back()}
+			onClick={() => router.push(`/home`)}
             variant={"icon"}
             size={"xxs"}
             >   

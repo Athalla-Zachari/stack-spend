@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { PageHeader } from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getUserDebts } from "@/db/queries";
 import { DebtsCardTotal } from "./DebtsCardTotal";
 
 function PageHeaderSkeleton() {
@@ -12,10 +13,15 @@ function PageHeaderSkeleton() {
 	);
 }
 
+function DebtsCardSkeleton() {
+	return (
+		<div className="w-full h-36 rounded-xl bg-teal/20 animate-pulse" />
+	);
+}
+
 async function DebtsCardSection() {
-
-
-	return <DebtsCardTotal/>
+	const debts = await getUserDebts();
+	return <DebtsCardTotal debts={debts} />;
 }
 
 export default function DebtsLayout({
@@ -29,8 +35,8 @@ export default function DebtsLayout({
 				<PageHeader title="Debts" />
 			</Suspense>
 			<section className="w-full px-6">
-				<Suspense>
-					<DebtsCardSection/>
+				<Suspense fallback={<DebtsCardSkeleton />}>
+					<DebtsCardSection />
 				</Suspense>
 			</section>
 			<div className="flex-1 w-full flex flex-col">
