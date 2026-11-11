@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "cn";
 import type { Pocket } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +12,23 @@ import { Eye, EyeOff } from "lucide-react";
 import walletLogo from "../../public/assets/empty-wallet.svg";
 import chip from "../../public/assets/Circuit.svg";
 
-export interface PocketCardProps {
+export const pocketCardVariants = cva(
+  "relative w-full rounded-xl shadow-lg border border-teal-deep/10 flex flex-col justify-between overflow-hidden",
+  {
+    variants: {
+      size: {
+        default: "p-5 gap-3",
+        sm: "p-4 gap-2 min-h-36",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
+
+export interface PocketCardProps
+  extends VariantProps<typeof pocketCardVariants> {
   pocket: Pocket;
   userName: string;
   index?: number;
@@ -41,11 +59,13 @@ export function PocketCard({
   className = "",
   isVisible: externalIsVisible,
   onToggleVisibility,
+  size = "default",
 }: PocketCardProps) {
   const [internalIsVisible, setInternalIsVisible] = useState(false);
 
   const isControlled = externalIsVisible !== undefined;
   const isVisible = isControlled ? externalIsVisible : internalIsVisible;
+  const isSm = size === "sm";
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,62 +79,96 @@ export function PocketCard({
 
   const bgColor = getCardBgColor(pocket.userId || pocket.id, index);
 
-  return (
-    <div
-      className={`relative w-full rounded-xl shadow-lg border border-teal-deep/10 p-5 flex flex-col justify-between gap-3 ${bgColor} overflow-hidden ${className}`}
-    >
-      <span className="flex items-center">
-        <h1 className="text-teal-deep text-lg font-bold leading-tight truncate z-10">
-          IDR{" "}
-          {isVisible
-            ? `${Number(pocket.balance || 0).toLocaleString("id-ID")}, 00`
-            : "* * * * * * * *"}
-        </h1>
-        <Button
-          onClick={handleToggle}
-          variant={"icon"}
-          size={"icon"}
-          className={"text-teal-deep cursor-pointer"}
-          aria-label={isVisible ? "Sembunyikan saldo" : "Tampilkan saldo"}
-        >
-          {isVisible ? <EyeOff /> : <Eye />}
-        </Button>
-      </span>
+	return (
+		<div className={cn(pocketCardVariants({ size, className }), bgColor)}>
+		<span className="flex items-center">
+			<h1
+			className={`text-teal-deep font-bold leading-tight truncate z-10 ${
+				isSm ? "text-base" : "text-lg"
+			}`}
+			>
+			IDR{" "}
+			{isVisible
+				? `${Number(pocket.balance || 0).toLocaleString("id-ID")}, 00`
+				: "* * * * * * * *"}
+			</h1>
+			<Button
+			onClick={handleToggle}
+			variant={"icon"}
+			size={"icon"}
+			className={`text-teal-deep cursor-pointer ${isSm ? "size-7" : ""}`}
+			aria-label={isVisible ? "Sembunyikan saldo" : "Tampilkan saldo"}
+			>
+			{isVisible ? (
+				<EyeOff className={isSm ? "size-4" : undefined} />
+			) : (
+				<Eye className={isSm ? "size-4" : undefined} />
+			)}
+			</Button>
+		</span>
 
-      <div className="w-full flex justify-between items-center z-10">
-        <Image
-          src={chip}
-          alt="sim-chip"
-          className="h-10 w-auto object-contain shrink-0"
-        />
-        <Image
-          src={walletLogo}
-          alt="empty-wallet-logo"
-          className="h-24 w-auto object-contain shrink-0"
-        />
-      </div>
+		<div className="w-full flex justify-between items-center z-10">
+			<Image
+			src={chip}
+			alt="sim-chip"
+			className={`${
+				isSm ? "h-7" : "h-10"
+			} w-auto object-contain shrink-0`}
+			/>
+			<Image
+			src={walletLogo}
+			alt="empty-wallet-logo"
+			className={`${
+				isSm ? "h-16" : "h-24"
+			} w-auto object-contain shrink-0`}
+			/>
+		</div>
 
-      <h1 className="text-teal-mid text-[14px] font-bold leading-tight uppercase truncate z-10">
-        {pocket.name} - {userName}
-      </h1>
-    </div>
-  );
+		<h1
+			className={`text-teal-mid font-bold leading-tight uppercase truncate z-10 ${
+			isSm ? "text-xs" : "text-[14px]"
+			}`}
+		>
+			{pocket.name} - {userName}
+		</h1>
+		</div>
+	);
 }
 
-export function PocketCardSkeleton() {
+export const pocketCardSkeletonVariants = cva(
+  "w-full rounded-xl flex flex-col justify-between bg-grey100",
+  {
+    variants: {
+      size: {
+        default: "p-5 gap-3",
+        sm: "p-4 gap-2 min-h-36",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
+
+export function PocketCardSkeleton({
+  size = "default",
+  className,
+}: VariantProps<typeof pocketCardSkeletonVariants> & { className?: string }) {
+  const isSm = size === "sm";
+
   return (
-    <div className="w-full rounded-xl p-5 flex flex-col justify-between gap-3 bg-grey100">
+    <div className={cn(pocketCardSkeletonVariants({ size, className }))}>
       <div className="flex items-center gap-2">
-        <Skeleton className="h-6 w-40" />
-        <Skeleton className="size-6 rounded-md" />
+        <Skeleton className={`w-40 ${isSm ? "h-5" : "h-6"}`} />
+        <Skeleton className={`rounded-md ${isSm ? "size-5" : "size-6"}`} />
       </div>
 
       <div className="w-full flex justify-between items-center">
-        <Skeleton className="h-10 w-12 rounded-md" />
-        <Skeleton className="size-24 rounded-xl" />
+        <Skeleton className={`rounded-md ${isSm ? "h-7 w-9" : "h-10 w-12"}`} />
+        <Skeleton className={`rounded-xl ${isSm ? "size-16" : "size-24"}`} />
       </div>
 
-      <Skeleton className="h-4 w-48" />
+      <Skeleton className={`w-48 ${isSm ? "h-3.5" : "h-4"}`} />
     </div>
   );
 }

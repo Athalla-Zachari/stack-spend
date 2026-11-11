@@ -34,12 +34,18 @@ export default function HistoryLayout({
       <Suspense fallback={<PageHeaderSkeleton />}>
         <PageHeader title="History" />
       </Suspense>
-      <section className="w-full px-6">
-        <Suspense fallback={<PocketCardSkeleton />}>
+      <section className="w-full flex justify-center px-6">
+        <Suspense
+          fallback={
+            <div className="w-full max-w-[320px]">
+              <PocketCardSkeleton size="sm" />
+            </div>
+          }
+        >
           <CardSelectorSection />
         </Suspense>
       </section>
-      <div className="flex-1 w-full flex flex-col bg-white rounded-tl-4xl rounded-tr-4xl px-7 py-6 pt-8">
+      <div className="flex-1 w-full flex flex-col bg-mist rounded-tl-4xl rounded-tr-4xl px-5 py-6 pt-8">
         {children}
       </div>
     </div>
