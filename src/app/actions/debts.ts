@@ -65,3 +65,68 @@ export async function createDebtAction(
 	revalidatePath("/debts");
 	return { success: true };
 }
+
+export async function repayDebtAction(
+	_prevState: DebtActionState | null,
+	formData: FormData,
+): Promise<DebtActionState> {
+	const session = await requireSession();
+
+	const debtId = formData.get("debtId")?.toString().trim() ?? "";
+	const rawAmount = formData.get("amount")?.toString().trim() ?? "";
+
+	if (!debtId) {
+		return { error: "ID hutang tidak valid." };
+	}
+
+	if (!rawAmount || !/^\d+$/.test(rawAmount)) {
+		return { error: "Nominal pembayaran harus lebih dari IDR 0." };
+	}
+
+	const repayAmount = Number(rawAmount);
+	if (!Number.isSafeInteger(repayAmount) || repayAmount <= 0) {
+		return { error: "Nominal pembayaran harus lebih dari IDR 0." };
+	}
+
+	try {
+		const debt = await db
+			.select()
+			.from(debts)
+			.where(and(eq(debts.id, debtId), eq(debts.userId, session.id)))
+			.get();
+
+		if (!debt) {
+			return { error: "Data hutang tidak ditemukan." };
+		}
+
+		const totalAmount = Number(debt.totalAmount);
+		const currentPaid = Number(debt.paidAmount || 0);
+		const remaining = Math.max(0, totalAmount - currentPaid);
+
+		if (repayAmount > remaining) {
+			return {
+				error: `Nominal pembayaran melebihi sisa hutang (Maks: IDR ${remaining.toLocaleString("id-ID")}).`,
+			};
+		}
+
+		const newPaidAmount = currentPaid + repayAmount;
+		const newStatus: "unpaid" | "partial" | "paid" =
+			newPaidAmount >= totalAmount ? "paid" : "partial";
+
+		await db
+			.update(debts)
+			.set({
+				paidAmount: String(newPaidAmount),
+				status: newStatus,
+			})
+			.where(and(eq(debts.id, debtId), eq(debts.userId, session.id)));
+	} catch (err) {
+		console.error("Repay debt error:", err);
+		return {
+			error: "Terjadi kesalahan saat mencatat pembayaran hutang.",
+		};
+	}
+
+	revalidatePath("/debts");
+	return { success: true };
+}

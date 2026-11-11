@@ -61,7 +61,25 @@ export function AddDebtDrawer({ isOpen, onClose }: AddDebtDrawerProps) {
 		}
 	}, [state, onClose]);
 
-	// Menutup numpad ketika klik di luar area numpad & amount field
+	// Escape key listener to close numpad or drawer (A11y R-32)
+	useEffect(() => {
+		if (!isOpen) return;
+
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				if (isNumpadOpen) {
+					setIsNumpadOpen(false);
+				} else {
+					onClose();
+				}
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [isOpen, isNumpadOpen, onClose]);
 	useEffect(() => {
 		if (!isNumpadOpen) return;
 
@@ -112,6 +130,9 @@ export function AddDebtDrawer({ isOpen, onClose }: AddDebtDrawerProps) {
 
 						{/* Bottom Drawer */}
 						<motion.div
+							role="dialog"
+							aria-modal="true"
+							aria-labelledby="add-debt-title"
 							initial={{ y: "100%" }}
 							animate={{ y: 0 }}
 							exit={{ y: "100%" }}
@@ -123,9 +144,22 @@ export function AddDebtDrawer({ isOpen, onClose }: AddDebtDrawerProps) {
 							<div className="w-12 h-1 bg-grey300 rounded-full mx-auto mb-4 shrink-0" />
 
 							<div className="flex justify-between items-center mb-5 shrink-0">
-								<h2 className="text-xl font-bold text-teal-deep">
+								<h2 id="add-debt-title" className="text-xl font-bold text-teal-deep">
 									Add Loan
 								</h2>
+								<Button
+									type="button"
+									variant="icon"
+									size="icon-sm"
+									aria-label="Tutup form tambah hutang"
+									onClick={() => {
+										setIsNumpadOpen(false);
+										onClose();
+									}}
+									className="p-1 text-subtext hover:text-charcoal cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full"
+								>
+									<X className="size-5" />
+								</Button>
 							</div>
 
 							<form
@@ -184,6 +218,8 @@ export function AddDebtDrawer({ isOpen, onClose }: AddDebtDrawerProps) {
 											type="text"
 											readOnly
 											inputMode="none"
+											aria-haspopup="dialog"
+											aria-expanded={isNumpadOpen}
 											value={formattedTotalAmount}
 											onFocus={() => setIsNumpadOpen(true)}
 											placeholder="0"
@@ -203,7 +239,7 @@ export function AddDebtDrawer({ isOpen, onClose }: AddDebtDrawerProps) {
 											setIsNumpadOpen(false);
 											onClose();
 										}}
-										className="flex-1"
+										className="flex-1 cursor-pointer"
 									>
 										Batal
 									</Button>
@@ -211,8 +247,8 @@ export function AddDebtDrawer({ isOpen, onClose }: AddDebtDrawerProps) {
 										type="submit"
 										variant="solid"
 										size="lg"
-										disabled={isPending}
-										className="flex-1"
+										disabled={isPending || !totalAmount || Number(totalAmount) <= 0 || !creditorName.trim()}
+										className="flex-1 cursor-pointer"
 									>
 										{isPending ? "Menyimpan..." : "Simpan Hutang"}
 									</Button>
