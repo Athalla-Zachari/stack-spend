@@ -182,7 +182,12 @@ export async function createTransferAction(
 				db
 					.select()
 					.from(categories)
-					.where(eq(categories.name, "transfer"))
+					.where(
+						and(
+							eq(categories.name, "transfer"),
+							eq(categories.type, "expense"),
+						),
+					)
 					.get(),
 			]);
 

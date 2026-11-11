@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { desc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
-import { db, pockets, transactions, categories } from "@/db";
+import { db, pockets, transactions, categories, debts } from "@/db";
 import { requireSession } from "@/lib/auth";
 
 export const getUserPockets = cache(async () => {
@@ -15,6 +15,15 @@ export const getUserPockets = cache(async () => {
 export const getCategories = cache(async () => {
   await requireSession();
   return db.select().from(categories);
+});
+
+export const getUserDebts = cache(async () => {
+  const session = await requireSession();
+  return db
+    .select()
+    .from(debts)
+    .where(eq(debts.userId, session.id))
+    .orderBy(desc(debts.dueDate), desc(debts.id));
 });
 
 export interface TransactionWithDetails {

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, numeric } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, numeric, unique } from "drizzle-orm/sqlite-core";
 
 // 1. Profiles (User Accounts)
 export const profiles = sqliteTable("profiles", {
@@ -26,14 +26,18 @@ export const pockets = sqliteTable("pockets", {
 });
 
 // 3. Categories
-export const categories = sqliteTable("categories", {
-	id: text("id")
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	name: text("name").notNull().unique(),
-	type: text("type", { enum: ["income", "expense"] }).notNull(),
-	description: text("description"),
-});
+export const categories = sqliteTable(
+	"categories",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		name: text("name").notNull(),
+		type: text("type", { enum: ["income", "expense"] }).notNull(),
+		description: text("description"),
+	},
+	(t) => [unique().on(t.name, t.type)],
+);
 
 // 4. Debts
 export const debts = sqliteTable("debts", {

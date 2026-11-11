@@ -20,6 +20,11 @@ const categoriesToSeed = [
     type: "income",
     description: "Gaji bulanan atau upah kerja",
   },
+  {
+    name: "transfer",
+    type: "income",
+    description: "Transfer uang masuk dari kerabat atau rekening lain",
+  },
   // Expense
   {
     name: "transfer",
@@ -68,8 +73,7 @@ async function seedCategories() {
         sql: `
           INSERT INTO categories (id, name, type, description)
           VALUES (?, ?, ?, ?)
-          ON CONFLICT(name) DO UPDATE SET
-            type = excluded.type,
+          ON CONFLICT(name, type) DO UPDATE SET
             description = excluded.description
         `,
         args: [id, cat.name, cat.type, cat.description],

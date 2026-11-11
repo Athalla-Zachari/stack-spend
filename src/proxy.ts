@@ -12,6 +12,7 @@ export function proxy(request: NextRequest) {
   if (
     (pathname.startsWith("/home") ||
       pathname.startsWith("/transactions") ||
+      pathname.startsWith("/debts") ||
       pathname.startsWith("/history")) &&
     !sessionCookie?.value
   ) {
@@ -22,5 +23,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/home/:path*", "/transactions/:path*", "/history/:path*"],
+  matcher: ["/", "/home/:path*", "/transactions/:path*", "/debts/:path*", "/history/:path*"],
 };
