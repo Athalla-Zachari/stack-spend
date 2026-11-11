@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Debt } from "@/db/schema";
+import type { Debt, Pocket } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { CirclePlus, HandCoins } from "lucide-react";
 import DebtsContainerSkeleton from "./DebtsContainerSkeleton";
@@ -13,11 +13,12 @@ import EmptyLogo from "../../../public/assets/skate.svg";
 
 interface DebtsContainerProps {
 	debts: Debt[];
+	pockets: Pocket[];
 }
 
 export { DebtsContainerSkeleton };
 
-export default function DebtsContainer({ debts }: DebtsContainerProps) {
+export default function DebtsContainer({ debts, pockets }: DebtsContainerProps) {
 	const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
 	const [selectedDebtForRepay, setSelectedDebtForRepay] = useState<Debt | null>(
 		null,
@@ -113,6 +114,7 @@ export default function DebtsContainer({ debts }: DebtsContainerProps) {
 
 			<RepayDebtDrawer
 				debt={selectedDebtForRepay}
+				pockets={pockets}
 				isOpen={selectedDebtForRepay !== null}
 				onClose={() => setSelectedDebtForRepay(null)}
 			/>

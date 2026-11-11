@@ -36,6 +36,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+AGENTS.md
+GEMINI.md
+
 # AI context
 PROJECT_CONTEXT.md
 

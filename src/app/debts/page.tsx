@@ -1,11 +1,14 @@
 import { Suspense } from "react";
-import { getUserDebts } from "@/db/queries";
+import { getUserDebts, getUserPockets } from "@/db/queries";
 import DebtsContainer, { DebtsContainerSkeleton } from "./DebtsContainer";
 
 async function DebtsSection() {
-	const userDebts = await getUserDebts();
+	const [userDebts, userPockets] = await Promise.all([
+		getUserDebts(),
+		getUserPockets(),
+	]);
 
-	return <DebtsContainer debts={userDebts} />;
+	return <DebtsContainer debts={userDebts} pockets={userPockets} />;
 }
 
 export default function DebtsPage() {
