@@ -6,16 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 function DailySpendingSkeleton() {
 	return (
 		<section className="w-full flex-1 flex flex-col gap-4 px-5 py-6 bg-mist rounded-tl-4xl rounded-tr-4xl min-h-[85vh]">
-			<Skeleton className="h-11 w-full rounded-2xl" />
-			<Skeleton className="h-32 w-full rounded-3xl" />
-			<div className="flex justify-between items-center pt-2">
-				<Skeleton className="h-5 w-36 rounded-md" />
-				<Skeleton className="h-4 w-20 rounded-md" />
-			</div>
-			<div className="flex flex-col gap-2.5">
-				<Skeleton className="h-16 w-full rounded-2xl" />
-				<Skeleton className="h-16 w-full rounded-2xl" />
-				<Skeleton className="h-16 w-full rounded-2xl" />
+			<div className="w-full rounded-2xl bg-teal-mid/30 p-4.5 border border-grey300/70 shadow-xs flex flex-col gap-2">
+				<Skeleton className="h-4 w-24 rounded-md bg-grey300/40" />
+				<Skeleton className="h-8 w-44 rounded-lg bg-grey300/40" />
+				<Skeleton className="h-6 w-36 rounded-full bg-grey300/40" />
 			</div>
 		</section>
 	);

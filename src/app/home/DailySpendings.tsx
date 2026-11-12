@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, TrendingDown } from "lucide-react";
+import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type { TransactionWithDetails } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -7,13 +7,13 @@ interface DailySpendingsProps {
 	transactions: TransactionWithDetails[];
 }
 
-function getTodayJakartaString(): string {
+function getJakartaDateString(date: Date = new Date()): string {
 	const parts = new Intl.DateTimeFormat("en-US", {
 		timeZone: "Asia/Jakarta",
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
-	}).formatToParts(new Date());
+	}).formatToParts(date);
 
 	const year = parts.find((p) => p.type === "year")?.value;
 	const month = parts.find((p) => p.type === "month")?.value;
@@ -22,8 +22,55 @@ function getTodayJakartaString(): string {
 	return `${year}-${month}-${day}`;
 }
 
+function getSpendingTrend(todayTotal: number, yesterdayTotal: number) {
+	if (yesterdayTotal === 0 && todayTotal === 0) {
+		return {
+			text: "0% vs yesterday",
+			icon: Minus,
+		};
+	}
+
+	if (yesterdayTotal === 0) {
+		return {
+			text: "100% more than yesterday",
+			icon: TrendingUp,
+		};
+	}
+
+	if (todayTotal === 0) {
+		return {
+			text: "100% less than yesterday",
+			icon: TrendingDown,
+		};
+	}
+
+	const diff = Math.abs(todayTotal - yesterdayTotal);
+	const percent = (diff / yesterdayTotal) * 100;
+	const formatted = percent.toFixed(1).replace(/\.0$/, "");
+
+	if (todayTotal > yesterdayTotal) {
+		return {
+			text: `${formatted}% more than yesterday`,
+			icon: TrendingUp,
+		};
+	}
+
+	if (todayTotal < yesterdayTotal) {
+		return {
+			text: `${formatted}% less than yesterday`,
+			icon: TrendingDown,
+		};
+	}
+
+	return {
+		text: "0% vs yesterday",
+		icon: Minus,
+	};
+}
+
 export function DailySpendings({ transactions }: DailySpendingsProps) {
-	const todayStr = getTodayJakartaString();
+	const todayStr = getJakartaDateString();
+	const yesterdayStr = getJakartaDateString(new Date(Date.now() - 86_400_000));
 
 	const todayExpenses = transactions.filter(
 		(t) =>
@@ -32,9 +79,26 @@ export function DailySpendings({ transactions }: DailySpendingsProps) {
 			t.transactionDate === todayStr,
 	);
 
+	const yesterdayExpenses = transactions.filter(
+		(t) =>
+			t.categoryType === "expense" &&
+			!t.relatedPocketId &&
+			t.transactionDate === yesterdayStr,
+	);
+
 	const todayTotal = todayExpenses.reduce(
 		(sum, t) => sum + Number(t.amount || 0),
 		0,
+	);
+
+	const yesterdayTotal = yesterdayExpenses.reduce(
+		(sum, t) => sum + Number(t.amount || 0),
+		0,
+	);
+
+	const { text: comparisonText, icon: TrendIcon } = getSpendingTrend(
+		todayTotal,
+		yesterdayTotal,
 	);
 
 	return (
@@ -47,11 +111,12 @@ export function DailySpendings({ transactions }: DailySpendingsProps) {
 					<div className="text-grey300">
 						Spent today
 					</div>
-                    <p className="text-3xl font-extrabold text-grey100 tracking-tight">
-                        IDR {todayTotal.toLocaleString("id-ID")}
-                    </p>
-					<span className="bg-lime px-3 py-1 rounded-full text-sm text-subtext font-medium">
-						2.3% less than yesterday
+					<p className="text-3xl font-extrabold text-grey100 tracking-tight">
+						IDR {todayTotal.toLocaleString("id-ID")}
+					</p>
+					<span className="bg-lime px-3 py-1 rounded-full text-sm text-subtext font-medium inline-flex items-center gap-1.5 w-fit">
+						<TrendIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
+						<span>{comparisonText}</span>
 					</span>
 				</div>
 			</div>
@@ -61,15 +126,10 @@ export function DailySpendings({ transactions }: DailySpendingsProps) {
 
 export function DailySpendingsSkeleton() {
 	return (
-		<div className="w-full rounded-2xl bg-white p-4.5 border border-grey300/70 shadow-xs flex flex-col gap-2">
-			<div className="flex justify-between items-center">
-				<Skeleton className="h-5 w-40 rounded-md" />
-				<Skeleton className="h-4 w-20 rounded-md" />
-			</div>
-			<div className="flex justify-between items-baseline pt-1">
-				<Skeleton className="h-7 w-32 rounded-lg" />
-				<Skeleton className="h-4 w-16 rounded-md" />
-			</div>
+		<div className="w-full rounded-2xl bg-teal-mid/30 p-4.5 border border-grey300/70 shadow-xs flex flex-col gap-2">
+			<Skeleton className="h-4 w-24 rounded-md bg-grey300/40" />
+			<Skeleton className="h-8 w-44 rounded-lg bg-grey300/40" />
+			<Skeleton className="h-6 w-36 rounded-full bg-grey300/40" />
 		</div>
 	);
 }
