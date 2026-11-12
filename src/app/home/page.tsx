@@ -1,9 +1,13 @@
 import { Suspense } from "react";
 import { requireSession } from "@/lib/auth";
 import { getUserPockets, getUserTransactions } from "@/db/queries";
+import Link from "next/link";
 
 import CardContainer, { CardContainerSkeleton } from "./CardContainer";
-import { DailySpendings, DailySpendingsSkeleton } from "./DailySpendings";
+import {
+	DailySpendingCard,
+	DailySpendingCardSkeleton,
+} from "@/app/daily-spending/DailySpendingCard";
 import HistoryContainer, { HistoryContainerSkeleton } from "@/app/history/HistoryContainer";
 
 async function PocketsSection() {
@@ -17,7 +21,12 @@ async function PocketsSection() {
 
 async function DailySpendingSection() {
 	const transactions = await getUserTransactions();
-	return <DailySpendings transactions={transactions} />;
+
+	return (
+		<Link href="/daily-spending">
+			<DailySpendingCard transactions={transactions} />
+		</Link>
+	);
 }
 
 async function HistorySection() {
@@ -33,7 +42,7 @@ export default function HomePage() {
 				<PocketsSection />
 			</Suspense>
 
-			<Suspense fallback={<DailySpendingsSkeleton />}>
+			<Suspense fallback={<DailySpendingCardSkeleton />}>
 				<DailySpendingSection />
 			</Suspense>
 

@@ -18,6 +18,7 @@ interface HistoryContainerProps {
   limit?: number;
   showSeeAll?: boolean;
   showFilter?: boolean;
+  showHeader?: boolean;
 }
 
 const MONTH_NAMES = [
@@ -49,6 +50,7 @@ export default function HistoryContainer({
   limit = 5,
   showSeeAll = false,
   showFilter = false,
+  showHeader = true,
 }: HistoryContainerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -125,22 +127,24 @@ export default function HistoryContainer({
 
   return (
     <section className="py-2 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h1 className="font-medium text-lg text-charcoal tracking-tight">
-          Transaction History
-        </h1>
+        {showHeader && (
+      	<div className="flex items-center justify-between">
+			<h1 className="font-medium text-lg text-charcoal tracking-tight">
+			Transaction History
+			</h1>
 
-        {showSeeAll && transactions.length > 0 && (
-          <Button
-            onClick={() => router.push("/history")}
-            variant={"icon"}
-            size={"xxs"}
-            className={"text-subtext cursor-pointer"}
-          >
-            See All
-          </Button>
-        )}
-      </div>
+			{showSeeAll && transactions.length > 0 && (
+			<Button
+				onClick={() => router.push("/history")}
+				variant={"icon"}
+				size={"xxs"}
+				className={"text-subtext cursor-pointer"}
+			>
+				See All
+			</Button>
+			)}
+      	</div>
+		)}
 
       {showFilter && transactions.length > 0 && (
         <div className="flex justify-between items-center border border-charcoal text-charcoal font-semibold rounded-full px-2 py-1">
