@@ -21,6 +21,8 @@ interface HistoryContainerProps {
   showHeader?: boolean;
   headerTitle?: string;
   showEntryLength?: boolean;
+  emptyTitle?: string;
+  emptyMessage?: string;
 }
 
 const MONTH_NAMES = [
@@ -55,6 +57,8 @@ export default function HistoryContainer({
   showHeader = true,
   headerTitle = "Transaction History",
   showEntryLength = false,
+  emptyTitle,
+  emptyMessage,
 }: HistoryContainerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -268,7 +272,7 @@ export default function HistoryContainer({
 
       <section className="flex flex-col gap-2 w-full">
         {displayedTransactions.length === 0 ? (
-          <NoHistoryEntry />
+          <NoHistoryEntry title={emptyTitle} message={emptyMessage} />
         ) : (
           displayedTransactions.map((tx) =>
             renderTransactionCard(tx, true),
@@ -308,7 +312,13 @@ export function HistoryContainerSkeleton() {
   );
 }
 
-export function NoHistoryEntry() {
+export function NoHistoryEntry({
+  title = "No Transactions Yet",
+  message = "Your transactions will appear here once you record your first spending.",
+}: {
+  title?: string;
+  message?: string;
+}) {
   return (
     <section className="flex-1 flex flex-col items-center gap-2 p-5 py-14">
       <Image
@@ -317,10 +327,10 @@ export function NoHistoryEntry() {
         className="h-32 w-auto object-contain"
       />
       <h3 className="font-semibold text-base sm:text-lg text-charcoal">
-        No Transactions Yet
+        {title}
       </h3>
       <p className="text-xs sm:text-sm text-subtext text-center max-w-xs">
-        Your transactions will appear here once you record your first spending.
+        {message}
       </p>
     </section>
   );

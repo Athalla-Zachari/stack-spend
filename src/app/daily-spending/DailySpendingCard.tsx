@@ -19,7 +19,7 @@ interface CategorySpendingItem {
   bgColor: string;
 }
 
-function getJakartaDateString(date: Date = new Date()): string {
+export function getJakartaDateString(date: Date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Jakarta",
     year: "numeric",
