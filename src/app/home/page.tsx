@@ -3,6 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { getUserPockets, getUserTransactions } from "@/db/queries";
 
 import CardContainer, { CardContainerSkeleton } from "./CardContainer";
+import { DailySpendings, DailySpendingsSkeleton } from "./DailySpendings";
 import HistoryContainer, { HistoryContainerSkeleton } from "@/app/history/HistoryContainer";
 
 async function PocketsSection() {
@@ -14,10 +15,15 @@ async function PocketsSection() {
 	return <CardContainer pockets={userPockets} userName={session.displayName} />;
 }
 
+async function DailySpendingSection() {
+	const transactions = await getUserTransactions();
+	return <DailySpendings transactions={transactions} />;
+}
+
 async function HistorySection() {
 	const transactions = await getUserTransactions();
 
-	return <HistoryContainer transactions={transactions} showSeeAll={true}/>
+	return <HistoryContainer transactions={transactions} showSeeAll={true} />;
 }
 
 export default function HomePage() {
@@ -27,8 +33,12 @@ export default function HomePage() {
 				<PocketsSection />
 			</Suspense>
 
-			<Suspense fallback={<HistoryContainerSkeleton/>}>
-				<HistorySection/>
+			<Suspense fallback={<DailySpendingsSkeleton />}>
+				<DailySpendingSection />
+			</Suspense>
+
+			<Suspense fallback={<HistoryContainerSkeleton />}>
+				<HistorySection />
 			</Suspense>
 		</main>
 	);

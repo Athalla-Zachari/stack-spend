@@ -2,7 +2,6 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image, { type StaticImageData } from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import type { Pocket } from "@/db/schema";
 import { createTransferAction } from "@/app/actions/transactions";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toast } from "@/components/ui/toast";
 import Numpad from "@/components/ui/numpad";
+import { PocketSelector } from "@/components/PocketSelector";
 import {
 	Select,
 	SelectContent,
@@ -18,18 +18,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-
-import bcaLogo from "../../../../public/assets/BCA.webp";
-import bniLogo from "../../../../public/assets/BNI.webp";
-import mandiriLogo from "../../../../public/assets/mandiri.webp";
-import spayLogo from "../../../../public/assets/spay.webp";
-
-const POCKET_LOGO_MAP: Record<string, StaticImageData> = {
-	bca: bcaLogo,
-	bni: bniLogo,
-	mandiri: mandiriLogo,
-	spay: spayLogo,
-};
 
 const MAX_AMOUNT_DIGITS = 11;
 
@@ -88,16 +76,13 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 		}));
 	};
 
-	const [prevActionState, setPrevActionState] = useState(state);
-
-	if (state !== prevActionState) {
-		setPrevActionState(state);
+	useEffect(() => {
 		if (state?.error) {
 			triggerToast(state.error, "error");
 		} else if (state?.warning) {
 			triggerToast(state.warning, "warning");
 		}
-	}
+	}, [state]);
 
 	const amountFieldRef = useRef<HTMLDivElement | null>(null);
 	const amountInputRef = useRef<HTMLInputElement | null>(null);
@@ -190,38 +175,11 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 				isNumpadOpen ? "pb-88" : "pb-8"
 			}`}
 		>
-			<section className="flex items-center gap-2 shrink-0">
-				{pockets.map((pocket) => {
-					const isSelected = selectedPocketId === pocket.id;
-					const logo = POCKET_LOGO_MAP[pocket.name.toLowerCase()];
-
-					return (
-						<Button
-							key={pocket.id}
-							type="button"
-							variant={"outline"}
-							onClick={() => handleSelectSourcePocket(pocket.id)}
-							className={`h-9 py-2 transition-all hover:cursor-pointer ${
-								isSelected
-									? "border-teal-mid bg-teal/10"
-									: "opacity-70 hover:opacity-100"
-							}`}
-						>
-							{logo ? (
-								<Image
-									src={logo}
-									alt={`${pocket.name}-logo`}
-									className="h-full w-auto object-contain"
-								/>
-							) : (
-								<span className="text-xs font-semibold uppercase text-teal-deep">
-									{pocket.name}
-								</span>
-							)}
-						</Button>
-					);
-				})}
-			</section>
+			<PocketSelector
+				pockets={pockets}
+				selectedPocketId={selectedPocketId}
+				onSelectPocket={handleSelectSourcePocket}
+			/>
 
 			<form
 				action={formAction}

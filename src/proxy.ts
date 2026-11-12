@@ -13,7 +13,9 @@ export function proxy(request: NextRequest) {
     (pathname.startsWith("/home") ||
       pathname.startsWith("/transactions") ||
       pathname.startsWith("/debts") ||
-      pathname.startsWith("/history")) &&
+      pathname.startsWith("/history") ||
+      pathname.startsWith("/daily-spending") ||
+      pathname.startsWith("/spendings")) &&
     !sessionCookie?.value
   ) {
     return NextResponse.redirect(new URL("/", request.url));
@@ -23,5 +25,13 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/home/:path*", "/transactions/:path*", "/debts/:path*", "/history/:path*"],
+  matcher: [
+    "/",
+    "/home/:path*",
+    "/transactions/:path*",
+    "/debts/:path*",
+    "/history/:path*",
+    "/daily-spending/:path*",
+    "/spendings/:path*",
+  ],
 };

@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import Image, { type StaticImageData } from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import type { Debt, Pocket } from "@/db/schema";
@@ -9,18 +8,7 @@ import { repayDebtAction } from "@/app/actions/debts";
 import { Button } from "@/components/ui/button";
 import { Toast } from "@/components/ui/toast";
 import Numpad from "@/components/ui/numpad";
-
-import bcaLogo from "../../../public/assets/BCA.webp";
-import bniLogo from "../../../public/assets/BNI.webp";
-import mandiriLogo from "../../../public/assets/mandiri.webp";
-import spayLogo from "../../../public/assets/spay.webp";
-
-const POCKET_LOGO_MAP: Record<string, StaticImageData> = {
-	bca: bcaLogo,
-	bni: bniLogo,
-	mandiri: mandiriLogo,
-	spay: spayLogo,
-};
+import { PocketSelector } from "@/components/PocketSelector";
 
 interface RepayDebtDrawerProps {
 	debt: Debt | null;
@@ -246,38 +234,11 @@ export function RepayDebtDrawer({
 									<label className="font-semibold text-sm text-teal-deep">
 										Sumber Dana (Pocket)
 									</label>
-									<div className="flex items-center gap-2 overflow-x-auto pb-1">
-										{pockets.map((pocket) => {
-											const isSelected = selectedPocketId === pocket.id;
-											const logo = POCKET_LOGO_MAP[pocket.name.toLowerCase()];
-
-											return (
-												<Button
-													key={pocket.id}
-													type="button"
-													variant="outline"
-													onClick={() => setSelectedPocketId(pocket.id)}
-													className={`h-9 py-2 transition-all cursor-pointer ${
-														isSelected
-															? "border-teal-mid bg-teal/10"
-															: "opacity-70 hover:opacity-100"
-													}`}
-												>
-													{logo ? (
-														<Image
-															src={logo}
-															alt={`${pocket.name}-logo`}
-															className="h-full w-auto object-contain"
-														/>
-													) : (
-														<span className="text-xs font-semibold uppercase text-teal-deep">
-															{pocket.name}
-														</span>
-													)}
-												</Button>
-											);
-										})}
-									</div>
+									<PocketSelector
+										pockets={pockets}
+										selectedPocketId={selectedPocketId}
+										onSelectPocket={setSelectedPocketId}
+									/>
 								</div>
 
 								{/* Amount Input with Numpad Trigger */}
