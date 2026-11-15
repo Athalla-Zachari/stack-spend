@@ -119,6 +119,8 @@ export async function createTransactionAction(
 	revalidatePath("/home");
 	revalidatePath("/transactions");
 	revalidatePath("/transactions/transfer");
+	revalidatePath("/history");
+	revalidatePath("/daily-spending");
 	redirect("/home");
 }
 
@@ -248,5 +250,7 @@ export async function createTransferAction(
 	revalidatePath("/home");
 	revalidatePath("/transactions");
 	revalidatePath("/transactions/transfer");
+	revalidatePath("/history");
+	revalidatePath("/daily-spending");
 	redirect("/home");
 }

@@ -12,6 +12,8 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 
 export default function Header({user}: {user: SessionUser}){
+	const router = useRouter();
+
     return(
 		<section className="flex items-center p-4 gap-2">
 			<div className="flex flex-col flex-1">
@@ -33,6 +35,7 @@ export default function Header({user}: {user: SessionUser}){
 			<Button
 			variant={"icon"} 
 			size={"icon"}
+			onClick={() => router.push("/settings")}
 			>
 				<Settings className="size-7! text-teal-deep"/>
 			</Button>

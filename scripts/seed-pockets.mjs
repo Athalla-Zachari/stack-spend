@@ -17,6 +17,7 @@ const pocketsToSeed = [
   { name: "bca", balance: 0 },
   { name: "bni", balance: 0 },
   { name: "spay", balance: 0 },
+  { name: "cash", balance: 0 },
 ];
 
 async function seedPockets() {
@@ -45,7 +46,7 @@ async function seedPockets() {
       existingResult.rows.map((r) => String(r.name).toLowerCase())
     );
 
-    // 3. Insert pockets baru (bca, bni, spay) jika belum ada
+    // 3. Insert pockets baru (bca, bni, spay, cash) jika belum ada
     for (const pocket of pocketsToSeed) {
       if (existingNames.has(pocket.name)) {
         console.log(`- [SKIP] Pocket "${pocket.name}" sudah ada.`);

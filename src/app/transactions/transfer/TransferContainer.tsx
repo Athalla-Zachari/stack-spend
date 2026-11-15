@@ -337,9 +337,9 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 export function TransferContainerSkeleton() {
 	return (
 		<section className="w-full flex flex-col gap-3 min-h-[80vh] px-7 py-8 bg-white rounded-tl-4xl rounded-tr-4xl">
-			<div className="flex items-center gap-2">
-				{[1, 2, 3, 4].map((item) => (
-					<Skeleton key={item} className="h-9 w-16 rounded-lg" />
+			<div className="flex items-center gap-2 overflow-x-auto">
+				{[1, 2, 3, 4, 5].map((item) => (
+					<Skeleton key={item} className="h-11 w-16 shrink-0 rounded-lg" />
 				))}
 			</div>
 

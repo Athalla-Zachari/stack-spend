@@ -7,7 +7,11 @@ import { cn } from "cn";
 import type { Pocket } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Banknote, type LucideIcon } from "lucide-react";
+
+const POCKET_ICON_MAP: Record<string, LucideIcon> = {
+	cash: Banknote,
+};
 
 import walletLogo from "../../public/assets/empty-wallet.svg";
 import chip from "../../public/assets/Circuit.svg";
@@ -78,6 +82,7 @@ export function PocketCard({
   };
 
   const bgColor = getCardBgColor(pocket.userId || pocket.id, index);
+  const PocketIcon = POCKET_ICON_MAP[pocket.name.toLowerCase()];
 
 	return (
 		<div className={cn(pocketCardVariants({ size, className }), bgColor)}>
@@ -124,13 +129,23 @@ export function PocketCard({
 			/>
 		</div>
 
-		<h1
-			className={`text-teal-mid font-bold leading-tight uppercase truncate z-10 ${
-			isSm ? "text-xs" : "text-[14px]"
+		<div className="flex items-center gap-1.5 z-10 min-w-0">
+			{PocketIcon && (
+			<PocketIcon
+				className={`${
+				isSm ? "size-3.5" : "size-4"
+				} shrink-0 text-teal-deep`}
+				aria-hidden="true"
+			/>
+			)}
+			<h1
+			className={`text-teal-mid font-bold leading-tight uppercase truncate ${
+				isSm ? "text-xs" : "text-[14px]"
 			}`}
-		>
+			>
 			{pocket.name} - {userName}
-		</h1>
+			</h1>
+		</div>
 		</div>
 	);
 }
