@@ -16,6 +16,9 @@ import {
   Coffee,
   HeartPulse,
   GraduationCap,
+  User,
+  WalletMinimal,
+  Lock,
   type LucideIcon,
 } from "lucide-react";
 
@@ -106,3 +109,35 @@ export function getCategoryColor(
   }
   return fallbackCategoryPalette[fallbackIndex % fallbackCategoryPalette.length];
 }
+
+export type settingConfig = {
+  id: number;
+  label: string;
+  path: string;
+  icon: LucideIcon;
+};
+
+export type settingSectionConfig = {
+  id: string;
+  title: string;
+  items: settingConfig[];
+};
+
+// TODO: Create /settings/personal, /settings/pockets, and /settings/password route pages.
+export const settingSections: settingSectionConfig[] = [
+  {
+    id: "account",
+    title: "Account & Preferences",
+    items: [
+      { id: 1, label: "Personal Info", path: "/settings/personal", icon: User },
+      { id: 2, label: "Pockets", path: "/settings/pockets", icon: WalletMinimal },
+    ],
+  },
+  {
+    id: "privacy",
+    title: "Privacy",
+    items: [
+      { id: 3, label: "Password", path: "/settings/password", icon: Lock },
+    ],
+  },
+];

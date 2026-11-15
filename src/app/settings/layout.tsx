@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { requireSession } from "@/lib/auth";
 import { PageHeader } from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
 

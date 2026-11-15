@@ -1,28 +1,34 @@
 import { requireSession } from "@/lib/auth";
 import { Suspense } from "react";
-import ProfileCard, { ProfileCardSkeleton }  from "./ProfileCard";
-import SettingLists  from "./SettingLists";
+import ProfileCard, { ProfileCardSkeleton } from "./ProfileCard";
+import SettingLists, { SettingListsSkeleton } from "./SettingLists";
 
 async function ProfileCardSection() {
-    const [session] = await Promise.all([requireSession()]);
+	const session = await requireSession();
 
-    return (
-        <ProfileCard userName={session.displayName}/>
-    );
+	return (
+		<ProfileCard
+			userName={session.displayName}
+			userEmail={session.email}
+		/>
+	);
 }
 
-function SettingListSection() {
-    return(
-        <SettingLists />
-    )
+async function SettingListSection() {
+	await requireSession();
+	return <SettingLists />;
 }
 
 export default function SettingsPage() {
-    return(
-        <main className="w-full flex flex-col bg-mist gap-4">
-            <Suspense fallback={<ProfileCardSkeleton/>}>
-                <ProfileCardSection/>
-            </Suspense>
-        </main>
-    );
+	return (
+		<main className="w-full flex flex-col bg-mist gap-6">
+			<Suspense fallback={<ProfileCardSkeleton />}>
+				<ProfileCardSection />
+			</Suspense>
+
+			<Suspense fallback={<SettingListsSkeleton />}>
+				<SettingListSection />
+			</Suspense>
+		</main>
+	);
 }
