@@ -1,21 +1,28 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Image from "next/image"; 
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Dot } from "lucide-react";
 import type { TransactionWithDetails } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RunningText } from "@/components/ui/running-text";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { PeriodNavigator } from "@/components/ui/period-navigator";
 import { historyConfigMap, defaultHistoryList } from "@/components/style-config";
+import {
+  MONTH_NAMES,
+  formatShortDate,
+  getDaysInMonth,
+  getJakartaDateString,
+  parseDateString,
+} from "@/lib/date";
 import {
   WeeklySpendingCard,
   WeeklySpendingCardSkeleton,
 } from "./WeeklySpendingCard";
 
 import EmptyLogo from "../../../public/assets/no-data.svg";
-import { Dot } from "lucide-react";
 
 interface HistoryContainerProps {
   transactions: TransactionWithDetails[];
@@ -28,21 +35,6 @@ interface HistoryContainerProps {
   emptyTitle?: string;
   emptyMessage?: string;
 }
-
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 function formatTransactionDate(dateStr: string): string {
   const parts = dateStr.split("-");
@@ -69,27 +61,50 @@ export default function HistoryContainer({
   const selectedPocket = searchParams.get("pocket");
 
   // Inisialisasi tanggal aktif (prioritas dari transaksi terbaru, fallback ke tanggal hari ini)
-  const [currentDate, setCurrentDate] = useState<Date>(() => {
-    if (transactions.length > 0 && transactions[0].transactionDate) {
-      const parts = transactions[0].transactionDate.split("-");
-      if (parts.length >= 2) {
-        const y = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10) - 1;
-        if (!isNaN(y) && !isNaN(m) && m >= 0 && m <= 11) {
-          return new Date(y, m, 1);
-        }
-      }
+  const [currentDate, setCurrentDate] = useState<{
+    year: number;
+    month: number;
+  }>(() => {
+    const scoped =
+      selectedPocket && selectedPocket !== "all"
+        ? transactions.filter((tx) => tx.pocketId === selectedPocket)
+        : transactions;
+    const latestTx = scoped[0] ?? transactions[0];
+    const parsedLatest = latestTx?.transactionDate
+      ? parseDateString(latestTx.transactionDate)
+      : null;
+
+    if (parsedLatest) {
+      return { year: parsedLatest.year, month: parsedLatest.monthIndex };
     }
+
+    const jakartaToday = parseDateString(getJakartaDateString());
+    if (jakartaToday) {
+      return { year: jakartaToday.year, month: jakartaToday.monthIndex };
+    }
+
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return { year: now.getFullYear(), month: now.getMonth() };
   });
 
-  const selectedMonth = currentDate.getMonth();
-  const selectedYear = currentDate.getFullYear();
+  const selectedMonth = currentDate.month;
+  const selectedYear = currentDate.year;
+  const monthScope = `${selectedYear}-${selectedMonth}`;
+
+  const [daySelection, setDaySelection] = useState<{
+    scope: string;
+    day: number | null;
+  }>({ scope: "", day: null });
+
+  const selectedDay =
+    daySelection.scope === monthScope ? daySelection.day : null;
+
+  const daysInSelectedMonth = getDaysInMonth(selectedYear, selectedMonth);
 
   // Opsi daftar tahun dinamis berdasarkan data transaksi dan tahun saat ini
   const availableYears = useMemo(() => {
-    const currentYear = new Date().getFullYear();
+    const currentYear =
+      parseDateString(getJakartaDateString())?.year ?? new Date().getFullYear();
     const txYears = transactions
       .map((tx) => parseInt(tx.transactionDate.split("-")[0], 10))
       .filter((y) => !isNaN(y));
@@ -105,24 +120,75 @@ export default function HistoryContainer({
   }, [transactions]);
 
   const handlePrevMonth = () => {
-    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setCurrentDate((prev) =>
+      prev.month === 0
+        ? { year: prev.year - 1, month: 11 }
+        : { year: prev.year, month: prev.month - 1 },
+    );
   };
 
   const handleNextMonth = () => {
-    setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setCurrentDate((prev) =>
+      prev.month === 11
+        ? { year: prev.year + 1, month: 0 }
+        : { year: prev.year, month: prev.month + 1 },
+    );
   };
 
   const handleYearChange = (newYear: number) => {
-    setCurrentDate((prev) => new Date(newYear, prev.getMonth(), 1));
+    setCurrentDate((prev) => ({ year: newYear, month: prev.month }));
   };
+
+  const handlePrevDay = () => {
+    setDaySelection({
+      scope: monthScope,
+      day:
+        selectedDay === null
+          ? daysInSelectedMonth
+          : selectedDay <= 1
+            ? null
+            : selectedDay - 1,
+    });
+  };
+
+  const handleNextDay = () => {
+    setDaySelection({
+      scope: monthScope,
+      day:
+        selectedDay === null
+          ? 1
+          : selectedDay >= daysInSelectedMonth
+            ? null
+            : selectedDay + 1,
+    });
+  };
+
+  const handleDayChange = (value: string) => {
+    if (value === "all") {
+      setDaySelection({ scope: monthScope, day: null });
+      return;
+    }
+    const parsed = Number(value);
+    if (
+      Number.isInteger(parsed) &&
+      parsed >= 1 &&
+      parsed <= daysInSelectedMonth
+    ) {
+      setDaySelection({ scope: monthScope, day: parsed });
+    }
+  };
+
+  const monthPrefix = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`;
+  const selectedDayString =
+    showFilter && selectedDay !== null
+      ? `${monthPrefix}-${String(selectedDay).padStart(2, "0")}`
+      : null;
 
   // Filter transaksi berdasarkan bulan, tahun, dan pocket terpilih
   const filteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
       const matchDate = showFilter
-        ? tx.transactionDate.startsWith(
-            `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`
-          )
+        ? tx.transactionDate.startsWith(monthPrefix)
         : true;
       const matchPocket =
         selectedPocket && selectedPocket !== "all"
@@ -130,12 +196,34 @@ export default function HistoryContainer({
           : true;
       return matchDate && matchPocket;
     });
-  }, [transactions, showFilter, selectedYear, selectedMonth, selectedPocket]);
+  }, [transactions, showFilter, monthPrefix, selectedPocket]);
+
+  const dayFilteredTransactions = useMemo(() => {
+    if (!selectedDayString) return filteredTransactions;
+    return filteredTransactions.filter(
+      (tx) => tx.transactionDate === selectedDayString,
+    );
+  }, [filteredTransactions, selectedDayString]);
 
   const displayedTransactions =
     typeof limit === "number" && limit > 0
-      ? filteredTransactions.slice(0, limit)
-      : filteredTransactions;
+      ? dayFilteredTransactions.slice(0, limit)
+      : dayFilteredTransactions;
+
+  const shortMonth = MONTH_NAMES[selectedMonth].slice(0, 3);
+  const daySelectorLabel =
+    selectedDayString !== null ? formatShortDate(selectedDayString) : "All Days";
+
+  const resolvedEmptyTitle =
+    emptyTitle ??
+    (selectedDayString
+      ? `No Transactions on ${formatShortDate(selectedDayString)}`
+      : undefined);
+  const resolvedEmptyMessage =
+    emptyMessage ??
+    (selectedDayString
+      ? `No spending or income recorded for ${formatShortDate(selectedDayString)}.`
+      : undefined);
 
   const renderTransactionCard = (
     tx: TransactionWithDetails,
@@ -209,15 +297,15 @@ export default function HistoryContainer({
           {showSeeAll ? (
             <Button
               onClick={() => router.push("/history")}
-              variant={"icon"}
-              size={"xxs"}
-              className={"text-subtext cursor-pointer"}
+              variant="icon"
+              size="xxs"
+              className="text-subtext cursor-pointer"
             >
               See All
             </Button>
           ) : showEntryLength ? (
             <p className="text-subtext text-xs">
-              {filteredTransactions.length} transactions
+              {dayFilteredTransactions.length} transactions
             </p>
           ) : null}
         </div>
@@ -225,54 +313,26 @@ export default function HistoryContainer({
 
       {showFilter && (
         <>
-          <div className="flex justify-between items-center border border-charcoal text-charcoal font-semibold rounded-full px-2 py-1">
-            <Button
-              type="button"
-              variant={"icon"}
-              size={"icon"}
-              onClick={handlePrevMonth}
-              aria-label="Previous Month"
-              className="min-h-11 min-w-11 cursor-pointer hover:bg-grey100 rounded-full"
+          <PeriodNavigator
+            label={`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
+            prevLabel="Previous Month"
+            nextLabel="Next Month"
+            onPrev={handlePrevMonth}
+            onNext={handleNextMonth}
+          >
+            <select
+              aria-label="Select Year"
+              value={selectedYear}
+              onChange={(e) => handleYearChange(Number(e.target.value))}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
             >
-              <ChevronLeft className="size-5" aria-hidden="true" />
-            </Button>
-
-            <div className="relative flex items-center justify-center min-h-11">
-              <Button
-                type="button"
-                variant={"icon"}
-                className="min-h-11 flex items-center gap-1 w-fit text-[16px] text-charcoal font-semibold cursor-pointer px-3 py-1"
-              >
-                <span>
-                  {MONTH_NAMES[selectedMonth]} {selectedYear}
-                </span>
-                <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
-              </Button>
-              <select
-                aria-label="Select Year"
-                value={selectedYear}
-                onChange={(e) => handleYearChange(Number(e.target.value))}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
-              >
-                {availableYears.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Button
-              type="button"
-              variant={"icon"}
-              size={"icon"}
-              onClick={handleNextMonth}
-              aria-label="Next Month"
-              className="min-h-11 min-w-11 cursor-pointer hover:bg-grey100 rounded-full"
-            >
-              <ChevronRight className="size-5" aria-hidden="true" />
-            </Button>
-          </div>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </PeriodNavigator>
 
           <WeeklySpendingCard
             transactions={filteredTransactions}
@@ -280,16 +340,42 @@ export default function HistoryContainer({
             monthIndex={selectedMonth}
             monthName={MONTH_NAMES[selectedMonth]}
           />
+
+          <PeriodNavigator
+            label={daySelectorLabel}
+            prevLabel="Previous Day"
+            nextLabel="Next Day"
+            onPrev={handlePrevDay}
+            onNext={handleNextDay}
+          >
+            <select
+              aria-label="Select Day"
+              value={selectedDay === null ? "all" : String(selectedDay)}
+              onChange={(e) => handleDayChange(e.target.value)}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
+            >
+              <option value="all">All Days</option>
+              {Array.from(
+                { length: daysInSelectedMonth },
+                (_, idx) => idx + 1,
+              ).map((day) => (
+                <option key={day} value={String(day)}>
+                  {day} {shortMonth} {selectedYear}
+                </option>
+              ))}
+            </select>
+          </PeriodNavigator>
         </>
       )}
 
       <section className="flex flex-col gap-2 w-full">
         {displayedTransactions.length === 0 ? (
-          <NoHistoryEntry title={emptyTitle} message={emptyMessage} />
+          <NoHistoryEntry
+            title={resolvedEmptyTitle}
+            message={resolvedEmptyMessage}
+          />
         ) : (
-          displayedTransactions.map((tx) =>
-            renderTransactionCard(tx, true),
-          )
+          displayedTransactions.map((tx) => renderTransactionCard(tx, true))
         )}
       </section>
     </section>
@@ -309,8 +395,9 @@ export function HistoryContainerSkeleton({
       </div>
       {showFilter && (
         <>
-          <Skeleton className="h-12 w-full rounded-full bg-grey300/30" />
+          <Skeleton className="h-13 w-full rounded-full bg-grey300/30" />
           <WeeklySpendingCardSkeleton />
+          <Skeleton className="h-13 w-full rounded-full bg-grey300/30" />
         </>
       )}
       <div className="flex flex-col gap-2 w-full">

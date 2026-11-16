@@ -1,10 +1,12 @@
 import type { TransactionWithDetails } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryColor } from "@/components/style-config";
-import { getJakartaDateString } from "./DailySpendingCard";
+import { formatShortDate, getJakartaDateString } from "@/lib/date";
 
 interface SpendingChartProps {
   transactions: TransactionWithDetails[];
+  selectedDate?: string;
+  todayStr?: string;
 }
 
 interface CategorySlice {
@@ -15,22 +17,28 @@ interface CategorySlice {
   colorClass: string;
 }
 
-export default function SpendingChart({ transactions }: SpendingChartProps) {
-  const todayStr = getJakartaDateString();
+export default function SpendingChart({
+  transactions,
+  selectedDate,
+  todayStr,
+}: SpendingChartProps) {
+  const currentTodayStr = todayStr ?? getJakartaDateString();
+  const activeDateStr = selectedDate ?? currentTodayStr;
+  const isToday = activeDateStr === currentTodayStr;
 
-  const todayExpenses = transactions.filter(
+  const dayExpenses = transactions.filter(
     (t) =>
       t.categoryType === "expense" &&
       !t.relatedPocketId &&
-      t.transactionDate === todayStr,
+      t.transactionDate === activeDateStr,
   );
 
-  const totalTodaySpending = todayExpenses.reduce(
+  const totalDaySpending = dayExpenses.reduce(
     (sum, t) => sum + Number(t.amount || 0),
     0,
   );
 
-  const categoryMap = todayExpenses.reduce<Record<string, number>>((acc, t) => {
+  const categoryMap = dayExpenses.reduce<Record<string, number>>((acc, t) => {
     const cat = (t.categoryName || "other").trim().toLowerCase();
     acc[cat] = (acc[cat] || 0) + Number(t.amount || 0);
     return acc;
@@ -41,7 +49,7 @@ export default function SpendingChart({ transactions }: SpendingChartProps) {
   const categories: CategorySlice[] = categoryEntries.map(
     ([name, amount], index) => {
       const rawPercent =
-        totalTodaySpending > 0 ? (amount / totalTodaySpending) * 100 : 0;
+        totalDaySpending > 0 ? (amount / totalDaySpending) * 100 : 0;
       const colorClass = getCategoryColor(name, index);
 
       return {
@@ -54,6 +62,10 @@ export default function SpendingChart({ transactions }: SpendingChartProps) {
     },
   );
 
+  const emptyText = isToday
+    ? "No spending recorded today"
+    : `No spending recorded on ${formatShortDate(activeDateStr)}`;
+
   return (
     <section className="w-full flex flex-col gap-2.5">
       <h2 className="font-semibold text-base sm:text-lg text-teal-deep tracking-tight">
@@ -64,13 +76,13 @@ export default function SpendingChart({ transactions }: SpendingChartProps) {
         <div className="flex flex-col gap-1.5">
           <div
             role="progressbar"
-            aria-label="No spending recorded today"
+            aria-label={emptyText}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={0}
             className="w-full h-3 sm:h-3.5 rounded-full bg-grey300/40"
           />
-          <p className="text-xs text-subtext">No spending recorded today</p>
+          <p className="text-xs text-subtext">{emptyText}</p>
         </div>
       ) : (
         <div>
@@ -86,7 +98,7 @@ export default function SpendingChart({ transactions }: SpendingChartProps) {
               <div
                 key={cat.name}
                 style={{ width: `${cat.widthPercent}%` }}
-                className={`h-full ${cat.colorClass} transition-all duration-300`}
+                className={`h-full ${cat.colorClass} transition-all duration-300 motion-reduce:transition-none`}
                 title={`${cat.name}: IDR ${cat.amount.toLocaleString("id-ID")} (${cat.displayPercent}%)`}
               />
             ))}
