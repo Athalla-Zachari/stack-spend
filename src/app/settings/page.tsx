@@ -1,15 +1,17 @@
 import { requireSession } from "@/lib/auth";
+import { getUserProfile } from "@/db/queries";
 import { Suspense } from "react";
 import ProfileCard, { ProfileCardSkeleton } from "./ProfileCard";
 import SettingLists, { SettingListsSkeleton } from "./SettingLists";
 
 async function ProfileCardSection() {
-	const session = await requireSession();
+	const profile = await getUserProfile();
 
 	return (
 		<ProfileCard
-			userName={session.displayName}
-			userEmail={session.email}
+			userName={profile.displayName}
+			userEmail={profile.email}
+			avatarUrl={profile.avatarUrl}
 		/>
 	);
 }

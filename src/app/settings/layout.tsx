@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
+import SettingsHeader from "./SettingsHeader";
 
 function PageHeaderSkeleton() {
     return(
@@ -19,7 +19,7 @@ export default function SettingLayout({
     return(
         <div className="min-h-screen w-full flex flex-col font-sans overflow-x-hidden bg-mist">
             <Suspense fallback={<PageHeaderSkeleton/>}>
-                <PageHeader title="Setting"/>
+                <SettingsHeader />
             </Suspense>
             <div className="flex-1 w-full p-4">
                 {children}

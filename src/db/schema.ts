@@ -8,6 +8,7 @@ export const profiles = sqliteTable("profiles", {
 		.$defaultFn(() => crypto.randomUUID()),
 	displayName: text("display_name").notNull(),
 	email: text("email").notNull(),
+	avatarUrl: text("avatar_url"),
 	passwordHash: text("password_hash").notNull(),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
