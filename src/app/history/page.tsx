@@ -21,7 +21,7 @@ async function HistorySection() {
 export default function HistoryPage() {
   return (
     <main className="flex-1 flex flex-col">
-      <Suspense fallback={<HistoryContainerSkeleton />}>
+      <Suspense fallback={<HistoryContainerSkeleton showFilter={true} />}>
         <HistorySection />
       </Suspense>
     </main>

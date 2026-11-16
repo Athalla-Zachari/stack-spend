@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { RunningText } from "@/components/ui/running-text";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { historyConfigMap, defaultHistoryList } from "@/components/style-config";
+import {
+  WeeklySpendingCard,
+  WeeklySpendingCardSkeleton,
+} from "./WeeklySpendingCard";
 
 import EmptyLogo from "../../../public/assets/no-data.svg";
 import { Dot } from "lucide-react";
@@ -177,7 +181,7 @@ export default function HistoryContainer({
           </div>
 
           {showDate && (
-            <RunningText as="p" className="text-xs text-grey500">
+            <RunningText as="p" className="text-xs text-subtext">
               {formatTransactionDate(tx.transactionDate)}
             </RunningText>
           )}
@@ -219,55 +223,64 @@ export default function HistoryContainer({
         </div>
       )}
 
-      {showFilter && transactions.length > 0 && (
-        <div className="flex justify-between items-center border border-charcoal text-charcoal font-semibold rounded-full px-2 py-1">
-          <Button
-            type="button"
-            variant={"icon"}
-            size={"icon"}
-            onClick={handlePrevMonth}
-            aria-label="Previous Month"
-            className="cursor-pointer hover:bg-grey100 rounded-full"
-          >
-            <ChevronLeft className="size-5" />
-          </Button>
-
-          <div className="relative flex items-center justify-center">
+      {showFilter && (
+        <>
+          <div className="flex justify-between items-center border border-charcoal text-charcoal font-semibold rounded-full px-2 py-1">
             <Button
               type="button"
               variant={"icon"}
-              className="flex items-center gap-1 w-fit text-[16px] text-charcoal font-semibold cursor-pointer px-3 py-1"
+              size={"icon"}
+              onClick={handlePrevMonth}
+              aria-label="Previous Month"
+              className="min-h-11 min-w-11 cursor-pointer hover:bg-grey100 rounded-full"
             >
-              <span>
-                {MONTH_NAMES[selectedMonth]} {selectedYear}
-              </span>
-              <ChevronDown className="size-4 shrink-0" />
+              <ChevronLeft className="size-5" aria-hidden="true" />
             </Button>
-            <select
-              aria-label="Select Year"
-              value={selectedYear}
-              onChange={(e) => handleYearChange(Number(e.target.value))}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
+
+            <div className="relative flex items-center justify-center min-h-11">
+              <Button
+                type="button"
+                variant={"icon"}
+                className="min-h-11 flex items-center gap-1 w-fit text-[16px] text-charcoal font-semibold cursor-pointer px-3 py-1"
+              >
+                <span>
+                  {MONTH_NAMES[selectedMonth]} {selectedYear}
+                </span>
+                <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+              </Button>
+              <select
+                aria-label="Select Year"
+                value={selectedYear}
+                onChange={(e) => handleYearChange(Number(e.target.value))}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
+              >
+                {availableYears.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Button
+              type="button"
+              variant={"icon"}
+              size={"icon"}
+              onClick={handleNextMonth}
+              aria-label="Next Month"
+              className="min-h-11 min-w-11 cursor-pointer hover:bg-grey100 rounded-full"
             >
-              {availableYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+              <ChevronRight className="size-5" aria-hidden="true" />
+            </Button>
           </div>
 
-          <Button
-            type="button"
-            variant={"icon"}
-            size={"icon"}
-            onClick={handleNextMonth}
-            aria-label="Next Month"
-            className="cursor-pointer hover:bg-grey100 rounded-full"
-          >
-            <ChevronRight className="size-5" />
-          </Button>
-        </div>
+          <WeeklySpendingCard
+            transactions={filteredTransactions}
+            year={selectedYear}
+            monthIndex={selectedMonth}
+            monthName={MONTH_NAMES[selectedMonth]}
+          />
+        </>
       )}
 
       <section className="flex flex-col gap-2 w-full">
@@ -283,13 +296,23 @@ export default function HistoryContainer({
   );
 }
 
-export function HistoryContainerSkeleton() {
+export function HistoryContainerSkeleton({
+  showFilter = false,
+}: {
+  showFilter?: boolean;
+}) {
   return (
-    <section className="py-2 flex flex-col gap-2">
+    <section className="py-2 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <Skeleton className="h-5 w-36 rounded-md bg-grey300/30" />
         <Skeleton className="h-4 w-12 rounded-md bg-grey300/30" />
       </div>
+      {showFilter && (
+        <>
+          <Skeleton className="h-12 w-full rounded-full bg-grey300/30" />
+          <WeeklySpendingCardSkeleton />
+        </>
+      )}
       <div className="flex flex-col gap-2 w-full">
         {[1, 2, 3, 4, 5].map((item) => (
           <div
