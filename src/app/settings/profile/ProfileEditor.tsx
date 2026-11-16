@@ -9,10 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toast } from "@/components/ui/toast";
 import {
-  MAX_AVATAR_DATA_URL_LENGTH,
-  MAX_DISPLAY_NAME_LENGTH,
-  MIN_DISPLAY_NAME_LENGTH,
-  getInitials,
+	MAX_AVATAR_DATA_URL_LENGTH,
+	MAX_DISPLAY_NAME_LENGTH,
+	MIN_DISPLAY_NAME_LENGTH,
+	getInitials,
 } from "@/lib/profile";
 
 const MAX_RAW_IMAGE_BYTES = 5 * 1024 * 1024;
