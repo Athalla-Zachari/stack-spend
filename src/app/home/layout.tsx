@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { requireSession } from "@/lib/auth";
+import { getUserProfile } from "@/db/queries";
 import Header from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
 
 async function AuthenticatedHeader() {
-	const session = await requireSession();
-	return <Header user={session} />;
+	const profile = await getUserProfile();
+	return <Header user={profile} />;
 }
 
 function HeaderSkeleton() {

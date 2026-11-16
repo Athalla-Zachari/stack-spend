@@ -1,8 +1,74 @@
 import { cache } from "react";
 import { desc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
-import { db, pockets, transactions, categories, debts } from "@/db";
+import { db, profiles, pockets, transactions, categories, debts } from "@/db";
 import { requireSession } from "@/lib/auth";
+
+let avatarColumnReady = false;
+let avatarColumnPromise: Promise<void> | null = null;
+
+// Ensure avatar_url exists on existing Turso databases without a separate migration runner.
+export async function ensureAvatarColumn(): Promise<void> {
+  if (avatarColumnReady) return;
+  if (!avatarColumnPromise) {
+    avatarColumnPromise = (async () => {
+      try {
+        const columns = await db.all<{ name: string }>(
+          sql`PRAGMA table_info(profiles)`,
+        );
+        const hasAvatar = columns.some((col) => col.name === "avatar_url");
+        if (!hasAvatar) {
+          try {
+            await db.run(sql`ALTER TABLE profiles ADD COLUMN avatar_url TEXT`);
+          } catch (alterErr) {
+            const msg =
+              alterErr instanceof Error ? alterErr.message.toLowerCase() : "";
+            if (!msg.includes("duplicate column")) {
+              throw alterErr;
+            }
+          }
+        }
+        avatarColumnReady = true;
+      } catch (err) {
+        avatarColumnPromise = null;
+        throw err;
+      }
+    })();
+  }
+  return avatarColumnPromise;
+}
+
+export interface UserProfileSummary {
+  id: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+}
+
+export const getUserProfile = cache(async (): Promise<UserProfileSummary> => {
+  const session = await requireSession();
+  await ensureAvatarColumn();
+
+  const row = await db
+    .select({
+      id: profiles.id,
+      displayName: profiles.displayName,
+      email: profiles.email,
+      avatarUrl: profiles.avatarUrl,
+    })
+    .from(profiles)
+    .where(eq(profiles.id, session.id))
+    .get();
+
+  return (
+    row ?? {
+      id: session.id,
+      displayName: session.displayName,
+      email: session.email,
+      avatarUrl: null,
+    }
+  );
+});
 
 export const getUserPockets = cache(async () => {
   const session = await requireSession();

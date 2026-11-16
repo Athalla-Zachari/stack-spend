@@ -123,13 +123,13 @@ export type settingSectionConfig = {
   items: settingConfig[];
 };
 
-// TODO: Create /settings/personal, /settings/pockets, and /settings/password route pages.
+// TODO: Create /settings/pockets and /settings/password route pages.
 export const settingSections: settingSectionConfig[] = [
   {
     id: "account",
     title: "Account & Preferences",
     items: [
-      { id: 1, label: "Personal Info", path: "/settings/personal", icon: User },
+      { id: 1, label: "Personal Info", path: "/settings/profile", icon: User },
       { id: 2, label: "Pockets", path: "/settings/pockets", icon: WalletMinimal },
     ],
   },
