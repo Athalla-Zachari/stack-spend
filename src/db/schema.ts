@@ -23,6 +23,7 @@ export const pockets = sqliteTable("pockets", {
 		.references(() => profiles.id, { onDelete: "cascade" }),
 	name: text("name").notNull(),
 	balance: numeric("balance").notNull().default("0.00"),
+	archivedAt: text("archived_at"),
 	createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 

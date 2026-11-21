@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui/header";
 const SETTINGS_ROUTE_TITLES: Record<string, string> = {
   "/settings": "Setting",
   "/settings/profile": "Profile",
+  "/settings/pockets": "Pockets",
 };
 
 export default function SettingsHeader() {

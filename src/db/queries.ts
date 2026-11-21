@@ -1,12 +1,14 @@
 import { cache } from "react";
 import { cacheLife, cacheTag } from "next/cache";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { db, profiles, pockets, transactions, categories, debts } from "@/db";
 import { requireSession } from "@/lib/auth";
 
 let avatarColumnReady = false;
 let avatarColumnPromise: Promise<void> | null = null;
+let pocketArchiveColumnReady = false;
+let pocketArchiveColumnPromise: Promise<void> | null = null;
 
 // Ensure avatar_url exists on existing Turso databases without a separate migration runner.
 export async function ensureAvatarColumn(): Promise<void> {
@@ -71,12 +73,44 @@ export const getUserProfile = cache(async (): Promise<UserProfileSummary> => {
   );
 });
 
+// Ensure archived_at exists on existing Turso databases for soft-disabled pockets.
+export async function ensurePocketArchiveColumn(): Promise<void> {
+  if (pocketArchiveColumnReady) return;
+  if (!pocketArchiveColumnPromise) {
+    pocketArchiveColumnPromise = (async () => {
+      try {
+        const columns = await db.all<{ name: string }>(
+          sql`PRAGMA table_info(pockets)`,
+        );
+        const hasArchivedAt = columns.some((col) => col.name === "archived_at");
+        if (!hasArchivedAt) {
+          try {
+            await db.run(sql`ALTER TABLE pockets ADD COLUMN archived_at TEXT`);
+          } catch (alterErr) {
+            const msg =
+              alterErr instanceof Error ? alterErr.message.toLowerCase() : "";
+            if (!msg.includes("duplicate column")) {
+              throw alterErr;
+            }
+          }
+        }
+        pocketArchiveColumnReady = true;
+      } catch (err) {
+        pocketArchiveColumnPromise = null;
+        throw err;
+      }
+    })();
+  }
+  return pocketArchiveColumnPromise;
+}
+
 export const getUserPockets = cache(async () => {
   const session = await requireSession();
+  await ensurePocketArchiveColumn();
   return db
     .select()
     .from(pockets)
-    .where(eq(pockets.userId, session.id));
+    .where(and(eq(pockets.userId, session.id), isNull(pockets.archivedAt)));
 });
 
 async function getCachedCategories() {

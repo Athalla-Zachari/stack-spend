@@ -16,6 +16,9 @@
 # db
 /db/
 
+# agent plans
+/docs/
+
 # next.js
 /.next/
 /out/

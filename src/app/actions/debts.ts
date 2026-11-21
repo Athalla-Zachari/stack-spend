@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db, debts, pockets, categories, transactions } from "@/db";
+import { ensurePocketArchiveColumn } from "@/db/queries";
 import { requireSession } from "@/lib/auth";
 import { getJakartaDateString } from "@/lib/date";
 
@@ -95,6 +96,8 @@ export async function repayDebtAction(
 	}
 
 	try {
+		await ensurePocketArchiveColumn();
+
 		const [debt, pocket, debtCategory] = await Promise.all([
 			db
 				.select()
@@ -104,7 +107,13 @@ export async function repayDebtAction(
 			db
 				.select()
 				.from(pockets)
-				.where(and(eq(pockets.id, pocketId), eq(pockets.userId, session.id)))
+				.where(
+					and(
+						eq(pockets.id, pocketId),
+						eq(pockets.userId, session.id),
+						isNull(pockets.archivedAt),
+					),
+				)
 				.get(),
 			db
 				.select()
@@ -175,7 +184,13 @@ export async function repayDebtAction(
 				.set({
 					balance: String(newPocketBalance),
 				})
-				.where(and(eq(pockets.id, pocket.id), eq(pockets.userId, session.id))),
+				.where(
+					and(
+						eq(pockets.id, pocket.id),
+						eq(pockets.userId, session.id),
+						isNull(pockets.archivedAt),
+					),
+				),
 
 			// 3. Catat transaksi pengeluaran (expense)
 			db.insert(transactions).values({

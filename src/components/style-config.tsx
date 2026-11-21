@@ -115,6 +115,7 @@ export type settingConfig = {
   label: string;
   path: string;
   icon: LucideIcon;
+  comingSoon?: boolean;
 };
 
 export type settingSectionConfig = {
@@ -123,7 +124,7 @@ export type settingSectionConfig = {
   items: settingConfig[];
 };
 
-// TODO: Create /settings/pockets and /settings/password route pages.
+// TODO: Create /settings/password route page and remove comingSoon flag.
 export const settingSections: settingSectionConfig[] = [
   {
     id: "account",
@@ -137,7 +138,13 @@ export const settingSections: settingSectionConfig[] = [
     id: "privacy",
     title: "Privacy",
     items: [
-      { id: 3, label: "Password", path: "/settings/password", icon: Lock },
+      {
+        id: 3,
+        label: "Password",
+        path: "/settings/password",
+        icon: Lock,
+        comingSoon: true,
+      },
     ],
   },
 ];

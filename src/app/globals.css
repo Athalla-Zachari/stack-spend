@@ -41,3 +41,14 @@
 
 }
 
+/* Prevent page scrolling underneath native modal dialogs (modern-web-guidance) */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+

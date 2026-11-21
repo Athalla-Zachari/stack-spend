@@ -38,6 +38,23 @@ export default function SettingLists({
 						>
 							{section.items.map((item) => {
 								const Icon = item.icon;
+								if (item.comingSoon) {
+									return (
+										<li key={item.id}>
+											<div className="min-h-14 px-4 py-3 flex items-center gap-3 cursor-default select-none">
+												<span className="size-10 shrink-0 rounded-xl bg-mist text-subtext flex items-center justify-center">
+													<Icon className="size-5" aria-hidden="true" />
+												</span>
+												<span className="flex-1 min-w-0 truncate text-sm sm:text-base font-semibold text-subtext">
+													{item.label}
+												</span>
+												<span className="text-xs font-medium text-subtext shrink-0">
+													Coming soon
+												</span>
+											</div>
+										</li>
+									);
+								}
 								return (
 									<li key={item.id}>
 										<Link

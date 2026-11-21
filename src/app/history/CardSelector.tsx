@@ -42,6 +42,7 @@ export function CardSelector({ pockets, userName }: CardsProps) {
       userId: pockets[0]?.userId ?? ALL_POCKETS_ID,
       name: "All Pockets",
       balance: String(totalBalance),
+      archivedAt: null,
       createdAt: null,
     };
 

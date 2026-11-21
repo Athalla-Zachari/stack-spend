@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db, pockets, categories, transactions } from "@/db";
+import { ensurePocketArchiveColumn } from "@/db/queries";
 import { requireSession } from "@/lib/auth";
 import { getJakartaDateString } from "@/lib/date";
 
@@ -46,11 +47,19 @@ export async function createTransactionAction(
 	}
 
 	try {
+		await ensurePocketArchiveColumn();
+
 		const [pocket, category] = await Promise.all([
 			db
 				.select()
 				.from(pockets)
-				.where(and(eq(pockets.id, pocketId), eq(pockets.userId, session.id)))
+				.where(
+					and(
+						eq(pockets.id, pocketId),
+						eq(pockets.userId, session.id),
+						isNull(pockets.archivedAt),
+					),
+				)
 				.get(),
 			db
 				.select()
@@ -93,7 +102,13 @@ export async function createTransactionAction(
 			db
 				.update(pockets)
 				.set({ balance: String(newBalance) })
-				.where(and(eq(pockets.id, pocket.id), eq(pockets.userId, session.id))),
+				.where(
+					and(
+						eq(pockets.id, pocket.id),
+						eq(pockets.userId, session.id),
+						isNull(pockets.archivedAt),
+					),
+				),
 		]);
 	} catch (err) {
 		console.error("Create transaction error:", err);
@@ -148,13 +163,19 @@ export async function createTransferAction(
 	}
 
 	try {
+		await ensurePocketArchiveColumn();
+
 		const [sourcePocket, destinationPocket, transferCategory] =
 			await Promise.all([
 				db
 					.select()
 					.from(pockets)
 					.where(
-						and(eq(pockets.id, sourcePocketId), eq(pockets.userId, session.id)),
+						and(
+							eq(pockets.id, sourcePocketId),
+							eq(pockets.userId, session.id),
+							isNull(pockets.archivedAt),
+						),
 					)
 					.get(),
 				db
@@ -164,6 +185,7 @@ export async function createTransferAction(
 						and(
 							eq(pockets.id, destinationPocketId),
 							eq(pockets.userId, session.id),
+							isNull(pockets.archivedAt),
 						),
 					)
 					.get(),
@@ -214,7 +236,11 @@ export async function createTransferAction(
 				.update(pockets)
 				.set({ balance: String(newSourceBalance) })
 				.where(
-					and(eq(pockets.id, sourcePocket.id), eq(pockets.userId, session.id)),
+					and(
+						eq(pockets.id, sourcePocket.id),
+						eq(pockets.userId, session.id),
+						isNull(pockets.archivedAt),
+					),
 				),
 			db
 				.update(pockets)
@@ -223,6 +249,7 @@ export async function createTransferAction(
 					and(
 						eq(pockets.id, destinationPocket.id),
 						eq(pockets.userId, session.id),
+						isNull(pockets.archivedAt),
 					),
 				),
 		]);
