@@ -3,15 +3,15 @@
 import { useState, useMemo } from "react";
 import type { TransactionWithDetails } from "@/db/queries";
 import { PeriodNavigator } from "@/components/ui/period-navigator";
+import { DailySpendingCard } from "@/components/DailySpendingCard";
+import { TransactionList } from "@/components/TransactionList";
 import {
   formatDisplayDate,
   formatShortDate,
   parseDateString,
   shiftDateString,
 } from "@/lib/date";
-import { DailySpendingCard } from "./DailySpendingCard";
 import SpendingChart from "./SpendingChart";
-import HistoryContainer from "../history/HistoryContainer";
 
 interface DailySpendingContainerProps {
   transactions: TransactionWithDetails[];
@@ -80,7 +80,7 @@ export default function DailySpendingContainer({
         todayStr={initialDate}
       />
 
-      <HistoryContainer
+      <TransactionList
         transactions={dayTransactions}
         limit={0}
         showHeader={true}

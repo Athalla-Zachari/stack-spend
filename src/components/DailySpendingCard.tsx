@@ -7,8 +7,6 @@ import {
   shiftDateString,
 } from "@/lib/date";
 
-export { getJakartaDateString };
-
 export interface DailySpendingCardProps {
   transactions: TransactionWithDetails[];
   selectedDate?: string;
@@ -114,7 +112,9 @@ export function DailySpendingCard({
       <div className="flex justify-between items-start gap-3 sm:gap-4">
         <div className="flex flex-col gap-2 min-w-0 flex-1">
           <span className="text-grey300 text-xs sm:text-sm font-medium">
-            {isToday ? "Spent today" : `Spent on ${formatShortDate(activeDateStr)}`}
+            {isToday
+              ? "Spent today"
+              : `Spent on ${formatShortDate(activeDateStr)}`}
           </span>
           <p className="text-3xl sm:text-2xl lg:text-3xl font-extrabold text-grey100 tracking-tight truncate">
             IDR {dayTotal.toLocaleString("id-ID")}

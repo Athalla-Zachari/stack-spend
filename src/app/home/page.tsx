@@ -7,8 +7,11 @@ import CardContainer, { CardContainerSkeleton } from "./CardContainer";
 import {
 	DailySpendingCard,
 	DailySpendingCardSkeleton,
-} from "@/app/daily-spending/DailySpendingCard";
-import HistoryContainer, { HistoryContainerSkeleton } from "@/app/history/HistoryContainer";
+} from "@/components/DailySpendingCard";
+import {
+	TransactionList,
+	TransactionListSkeleton,
+} from "@/components/TransactionList";
 
 async function PocketsSection() {
 	const [session, userPockets] = await Promise.all([
@@ -32,7 +35,7 @@ async function DailySpendingSection() {
 async function HistorySection() {
 	const transactions = await getUserTransactions();
 
-	return <HistoryContainer transactions={transactions} showSeeAll={true} />;
+	return <TransactionList transactions={transactions} showSeeAll={true} />;
 }
 
 export default function HomePage() {
@@ -46,7 +49,7 @@ export default function HomePage() {
 				<DailySpendingSection />
 			</Suspense>
 
-			<Suspense fallback={<HistoryContainerSkeleton />}>
+			<Suspense fallback={<TransactionListSkeleton />}>
 				<HistorySection />
 			</Suspense>
 		</main>

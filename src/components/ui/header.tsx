@@ -5,6 +5,7 @@ import { getInitials } from "@/lib/profile";
 import { ChevronLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePathname, useRouter } from "next/navigation";
 
 export default function Header({
@@ -75,6 +76,15 @@ export function PageHeader({
           <p>{displayTitle}</p>
         </span>
       </Button>
+    </section>
+  );
+}
+
+export function PageHeaderSkeleton() {
+  return (
+    <section className="flex items-center p-4 gap-3">
+      <Skeleton className="size-6 rounded-md" />
+      <Skeleton className="h-5 w-28" />
     </section>
   );
 }

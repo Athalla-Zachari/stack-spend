@@ -1,22 +1,11 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/header";
+import { PageHeader, PageHeaderSkeleton } from "@/components/ui/header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getUserDebts } from "@/db/queries";
 import { DebtsCardTotal } from "./DebtsCardTotal";
 
-function PageHeaderSkeleton() {
-	return (
-		<section className="flex items-center p-4 gap-3">
-			<Skeleton className="size-6 rounded-md" />
-			<Skeleton className="h-5 w-28" />
-		</section>
-	);
-}
-
 function DebtsCardSkeleton() {
-	return (
-		<div className="w-full h-36 rounded-xl bg-teal/20 animate-pulse" />
-	);
+	return <Skeleton className="w-full h-36 rounded-xl bg-teal/20" />;
 }
 
 async function DebtsCardSection() {

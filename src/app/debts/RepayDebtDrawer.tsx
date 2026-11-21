@@ -6,9 +6,10 @@ import { X } from "lucide-react";
 import type { Debt, Pocket } from "@/db/schema";
 import { repayDebtAction } from "@/app/actions/debts";
 import { Button } from "@/components/ui/button";
-import { Toast } from "@/components/ui/toast";
+import { Toast, useActionToast } from "@/components/ui/toast";
 import Numpad from "@/components/ui/numpad";
 import { PocketSelector } from "@/components/PocketSelector";
+import { formatRupiahInput } from "@/lib/utils";
 
 interface RepayDebtDrawerProps {
 	debt: Debt | null;
@@ -18,13 +19,6 @@ interface RepayDebtDrawerProps {
 }
 
 const MAX_AMOUNT_DIGITS = 11;
-
-function formatRupiahInput(rawDigits: string): string {
-	if (!rawDigits) return "";
-	const numeric = Number(rawDigits);
-	if (Number.isNaN(numeric)) return "";
-	return numeric.toLocaleString("id-ID");
-}
 
 export function RepayDebtDrawer({
 	debt,
@@ -40,39 +34,27 @@ export function RepayDebtDrawer({
 	const [amount, setAmount] = useState("");
 	const [isNumpadOpen, setIsNumpadOpen] = useState(false);
 
-	useEffect(() => {
-		if (
-			pockets.length > 0 &&
-			(!selectedPocketId || !pockets.some((p) => p.id === selectedPocketId))
-		) {
-			setSelectedPocketId(pockets[0].id);
-		}
-	}, [pockets, selectedPocketId]);
+	const effectivePocketId = pockets.some((p) => p.id === selectedPocketId)
+		? selectedPocketId
+		: (pockets[0]?.id ?? "");
 
 	const amountFieldRef = useRef<HTMLDivElement | null>(null);
 	const numpadDrawerRef = useRef<HTMLDivElement | null>(null);
 
-	const [toast, setToast] = useState<{
-		isOpen: boolean;
-		message: string;
-		variant: "error" | "success";
-	}>({
-		isOpen: false,
-		message: "",
-		variant: "error",
-	});
+	const { toast, closeToast } = useActionToast(state);
+	const [prevState, setPrevState] = useState(state);
 
-	useEffect(() => {
+	if (state !== prevState) {
+		setPrevState(state);
 		if (state?.success) {
 			setAmount("");
 			setIsNumpadOpen(false);
+		}
+	}
+
+	useEffect(() => {
+		if (state?.success) {
 			onClose();
-		} else if (state?.error) {
-			setToast({
-				isOpen: true,
-				message: state.error,
-				variant: "error",
-			});
 		}
 	}, [state, onClose]);
 
@@ -226,7 +208,7 @@ export function RepayDebtDrawer({
 								className="flex flex-col gap-4"
 							>
 								<input type="hidden" name="debtId" value={debt.id} />
-								<input type="hidden" name="pocketId" value={selectedPocketId} />
+								<input type="hidden" name="pocketId" value={effectivePocketId} />
 								<input type="hidden" name="amount" value={amount} />
 
 								{/* Source Pocket Selector */}
@@ -236,7 +218,7 @@ export function RepayDebtDrawer({
 									</label>
 									<PocketSelector
 										pockets={pockets}
-										selectedPocketId={selectedPocketId}
+										selectedPocketId={effectivePocketId}
 										onSelectPocket={setSelectedPocketId}
 									/>
 								</div>
@@ -269,7 +251,6 @@ export function RepayDebtDrawer({
 											readOnly
 											inputMode="none"
 											aria-haspopup="dialog"
-											aria-expanded={isNumpadOpen}
 											value={formattedAmount}
 											onFocus={() => setIsNumpadOpen(true)}
 											placeholder="0"
@@ -297,7 +278,7 @@ export function RepayDebtDrawer({
 										type="submit"
 										variant="solid"
 										size="lg"
-										disabled={isPending || !amount || Number(amount) <= 0 || !selectedPocketId}
+										disabled={isPending || !amount || Number(amount) <= 0 || !effectivePocketId}
 										className="flex-1 cursor-pointer"
 									>
 										{isPending ? "Memproses..." : "Konfirmasi Bayar"}
@@ -334,10 +315,11 @@ export function RepayDebtDrawer({
 
 			{toast.isOpen && (
 				<Toast
+					key={toast.id}
 					variant={toast.variant}
 					position="top-center"
 					isOpen={toast.isOpen}
-					onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
+					onClose={closeToast}
 					message={toast.message}
 				/>
 			)}

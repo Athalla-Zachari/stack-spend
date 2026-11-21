@@ -177,3 +177,86 @@ export function Toast({
 	);
 }
 
+export type ActionToastVariant = "error" | "warning" | "success" | "info";
+
+interface ActionToastSource {
+	error?: string;
+	warning?: string;
+	info?: string;
+	success?: boolean;
+}
+
+export function useActionToast(
+	actionState: ActionToastSource | null | undefined,
+	options?: { successMessage?: string },
+) {
+	const [toast, setToast] = React.useState<{
+		id: number;
+		isOpen: boolean;
+		message: string;
+		variant: ActionToastVariant;
+	}>({
+		id: 0,
+		isOpen: false,
+		message: "",
+		variant: "error",
+	});
+
+	const [prevActionState, setPrevActionState] = React.useState(actionState);
+
+	const triggerToast = React.useCallback(
+		(message: string, variant: ActionToastVariant = "error") => {
+			setToast((prev) => ({
+				id: prev.id + 1,
+				isOpen: true,
+				message,
+				variant,
+			}));
+		},
+		[],
+	);
+
+	if (actionState !== prevActionState) {
+		setPrevActionState(actionState);
+		if (actionState?.error) {
+			setToast((prev) => ({
+				id: prev.id + 1,
+				isOpen: true,
+				message: actionState.error ?? "",
+				variant: "error",
+			}));
+		} else if (actionState?.warning) {
+			setToast((prev) => ({
+				id: prev.id + 1,
+				isOpen: true,
+				message: actionState.warning ?? "",
+				variant: "warning",
+			}));
+		} else if (actionState?.info) {
+			setToast((prev) => ({
+				id: prev.id + 1,
+				isOpen: true,
+				message: actionState.info ?? "",
+				variant: "info",
+			}));
+		} else if (actionState?.success && options?.successMessage) {
+			setToast((prev) => ({
+				id: prev.id + 1,
+				isOpen: true,
+				message: options.successMessage ?? "",
+				variant: "success",
+			}));
+		}
+	}
+
+	const closeToast = React.useCallback(() => {
+		setToast((prev) => ({ ...prev, isOpen: false }));
+	}, []);
+
+	return {
+		toast,
+		triggerToast,
+		closeToast,
+	};
+}
+

@@ -1,179 +1,26 @@
-"use client";
-
-import { useState, useActionState } from "react";
 import Image from "next/image";
-
-import { Button } from "@/components/ui/button";
-import { Toast } from "@/components/ui/toast";
-import { motion } from "motion/react";
-import { Eye, EyeOff } from "lucide-react";
 import spendItLogo from "../../public/assets/make-it-rain.svg";
 import MotionTypewriter from "@/components/ui/typewriter";
-import { loginAction } from "@/app/actions/auth";
-
-type ToastVariant = "error" | "warning" | "success" | "info";
-
-interface ToastState {
-	id: number;
-	isOpen: boolean;
-	message: string;
-	variant: ToastVariant;
-}
+import { LoginForm } from "./LoginForm";
 
 export default function Home() {
-	const [showPassword, setShowPassword] = useState(false);
-	const [state, formAction, isPending] = useActionState(loginAction, null);
+  return (
+    <main className="min-h-screen w-full pt-24 flex flex-col items-center gap-16 bg-beige">
+      <div className="flex flex-col items-center w-full">
+        <MotionTypewriter text="StackSpend" speed={0.08} />
+        <p className="text-subtext text-sm">My daily personal expense tracker</p>
+      </div>
 
-	const [toast, setToast] = useState<ToastState>({
-		id: 0,
-		isOpen: false,
-		message: "",
-		variant: "error",
-	});
+      <div className="w-full flex justify-center">
+        <Image
+          src={spendItLogo}
+          alt="StackSpend illustration"
+          priority
+          className="h-34 w-auto object-contain"
+        />
+      </div>
 
-	const triggerToast = (message: string, variant: ToastVariant = "error") => {
-		setToast((prev) => ({
-		id: prev.id + 1,
-		isOpen: true,
-		message,
-		variant,
-		}));
-	};
-
-	const [prevActionState, setPrevActionState] = useState(state);
-
-	// Trigger otomatis saat loginAction selesai mengembalikan pesan baru (React 19 safe pattern)
-	if (state !== prevActionState) {
-		setPrevActionState(state);
-		if (state?.error) {
-		triggerToast(state.error, "error");
-		} else if (state?.warning) {
-		triggerToast(state.warning, "warning");
-		}
-	}
-
-	return (
-		<div className="min-h-screen w-full pt-24 flex flex-col items-center gap-16 bg-beige">
-		<div className="flex flex-col items-center w-full">
-			<MotionTypewriter text="StackSpend" speed={0.08} />
-			<motion.p
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			transition={{ delay: 0.2, duration: 0.8 }}
-			className="text-subtext text-sm"
-			>
-			My daily personal expense tracker
-			</motion.p>
-		</div>
-
-		<motion.div
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			transition={{ delay: 0.3, duration: 1 }}
-			className="w-full flex justify-center"
-		>
-			<Image
-			src={spendItLogo}
-			alt="spend-it-logo"
-			className="h-34 w-auto object-contain"
-			/>
-		</motion.div>
-
-		<motion.section
-			initial={{ opacity: 0, y: 60 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{
-			duration: 1.2,
-			delay: 0.6,
-			ease: [0.16, 1, 0.3, 1],
-			}}
-			className="w-full flex-1 flex flex-col items-center gap-3 bg-white rounded-tr-[40px] rounded-tl-[40px] px-6 py-6 shadow-md"
-		>
-			<div className="bg-grey500 rounded-full h-2 w-15"></div>
-
-			<div className="w-full align-baseline py-4">
-			<h1 className="font-semibold text-lg text-teal-deep">Welcome Back</h1>
-			<p className="text-sm text-subtext">
-				Login to keep track of todays expenses
-			</p>
-			</div>
-
-			{/* Gunakan formAction langsung tanpa membungkus setState di dalamnya */}
-			<form action={formAction} className="w-full flex flex-col gap-5">
-			<section>
-				<h1 className="font-semibold text-[15px] text-teal-deep">
-				Full name
-				</h1>
-				<input
-				name="identifier"
-				type="text"
-				required
-				placeholder="Fullname..."
-				className="px-3 py-3 rounded-xl border border-grey300 w-full"
-				/>
-			</section>
-
-			<section>
-				<h1 className="font-semibold text-[15px] text-teal-deep">
-				Password
-				</h1>
-				<div className="relative flex items-center mt-1">
-				<input
-					name="password"
-					type={showPassword ? "text" : "password"}
-					required
-					placeholder="Password"
-					className="px-3 py-3 pr-10 rounded-xl border border-grey300 w-full"
-				/>
-				<button
-					type="button"
-					onClick={() => setShowPassword((prev) => !prev)}
-					className="absolute right-3 text-grey500 hover:text-charcoal transition-colors focus:outline-none"
-					aria-label={showPassword ? "Hide password" : "Show password"}
-				>
-					{showPassword ? (
-					<EyeOff className="h-5 w-5" />
-					) : (
-					<Eye className="h-5 w-5" />
-					)}
-				</button>
-				</div>
-			</section>
-
-			<Button
-				type="button"
-				variant={"link"}
-				size={"link"}
-				className={"mr-auto text-sm"}
-				onClick={() =>
-				triggerToast("Fitur reset password belum tersedia", "warning")
-				}
-			>
-				Forgot Password?
-			</Button>
-
-			<Button
-				type="submit"
-				disabled={isPending}
-				variant={"solid"}
-				size={"lg"}
-				className={"w-full"}
-			>
-				{isPending ? "Logging in..." : "Login"}
-			</Button>
-
-			{toast.isOpen && (
-				<Toast
-				key={toast.id}
-				variant={toast.variant}
-				position="top-center"
-				isOpen={toast.isOpen}
-				onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
-				message={toast.message}
-				/>
-			)}
-			</form>
-		</motion.section>
-		</div>
-	);
+      <LoginForm />
+    </main>
+  );
 }

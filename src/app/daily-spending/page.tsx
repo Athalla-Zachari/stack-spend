@@ -2,10 +2,10 @@ import { Suspense } from "react";
 import { getUserTransactions } from "@/db/queries";
 import { getJakartaDateString } from "@/lib/date";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DailySpendingCardSkeleton } from "@/components/DailySpendingCard";
+import { TransactionListSkeleton } from "@/components/TransactionList";
 import DailySpendingContainer from "./DailySpendingContainer";
 import { SpendingChartSkeleton } from "./SpendingChart";
-import { DailySpendingCardSkeleton } from "./DailySpendingCard";
-import { HistoryContainerSkeleton } from "../history/HistoryContainer";
 
 function DailySpendingPageSkeleton() {
   return (
@@ -13,7 +13,7 @@ function DailySpendingPageSkeleton() {
       <Skeleton className="h-13 w-full rounded-full bg-grey300/30" />
       <DailySpendingCardSkeleton />
       <SpendingChartSkeleton />
-      <HistoryContainerSkeleton />
+      <TransactionListSkeleton />
     </div>
   );
 }

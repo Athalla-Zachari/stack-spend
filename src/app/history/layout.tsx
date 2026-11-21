@@ -1,19 +1,9 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/header";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader, PageHeaderSkeleton } from "@/components/ui/header";
 import { CardSelector } from "./CardSelector";
 import { PocketCardSkeleton } from "@/components/PocketCard";
 import { requireSession } from "@/lib/auth";
 import { getUserPockets } from "@/db/queries";
-
-function PageHeaderSkeleton() {
-  return (
-    <section className="flex items-center p-4 gap-3">
-      <Skeleton className="size-6 rounded-md" />
-      <Skeleton className="h-5 w-28" />
-    </section>
-  );
-}
 
 async function CardSelectorSection() {
   const [session, pockets] = await Promise.all([

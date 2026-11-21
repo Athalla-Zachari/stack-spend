@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { desc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { db, profiles, pockets, transactions, categories, debts } from "@/db";
@@ -78,9 +79,16 @@ export const getUserPockets = cache(async () => {
     .where(eq(pockets.userId, session.id));
 });
 
+async function getCachedCategories() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("categories");
+  return db.select().from(categories);
+}
+
 export const getCategories = cache(async () => {
   await requireSession();
-  return db.select().from(categories);
+  return getCachedCategories();
 });
 
 export const getUserDebts = cache(async () => {

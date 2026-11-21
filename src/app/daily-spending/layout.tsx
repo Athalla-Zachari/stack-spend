@@ -1,15 +1,5 @@
 import { Suspense } from "react";
-import { PageHeader } from "@/components/ui/header";
-import { Skeleton } from "@/components/ui/skeleton";
-
-function PageHeaderSkeleton() {
-	return (
-		<section className="flex items-center p-4 gap-3">
-			<Skeleton className="size-6 rounded-md" />
-			<Skeleton className="h-5 w-36" />
-		</section>
-	);
-}
+import { PageHeader, PageHeaderSkeleton } from "@/components/ui/header";
 
 export default function DailySpendingLayout({
 	children,

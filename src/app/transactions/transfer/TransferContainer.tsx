@@ -7,9 +7,10 @@ import type { Pocket } from "@/db/schema";
 import { createTransferAction } from "@/app/actions/transactions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Toast } from "@/components/ui/toast";
+import { Toast, useActionToast } from "@/components/ui/toast";
 import Numpad from "@/components/ui/numpad";
 import { PocketSelector } from "@/components/PocketSelector";
+import { formatRupiahInput } from "@/lib/utils";
 import {
 	Select,
 	SelectContent,
@@ -25,24 +26,8 @@ interface TransferContainerProps {
 	pockets: Pocket[];
 }
 
-type ToastVariant = "error" | "warning" | "success" | "info";
-
-interface ToastState {
-	id: number;
-	isOpen: boolean;
-	message: string;
-	variant: ToastVariant;
-}
-
 function formatPocketLabel(name: string): string {
 	return name.toUpperCase();
-}
-
-function formatRupiahInput(rawDigits: string): string {
-	if (!rawDigits) return "";
-	const numeric = Number(rawDigits);
-	if (Number.isNaN(numeric)) return "";
-	return numeric.toLocaleString("id-ID");
 }
 
 export default function TransferContainer({ pockets }: TransferContainerProps) {
@@ -60,29 +45,7 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 	const [amount, setAmount] = useState<string>("");
 	const [isNumpadOpen, setIsNumpadOpen] = useState<boolean>(false);
 
-	const [toast, setToast] = useState<ToastState>({
-		id: 0,
-		isOpen: false,
-		message: "",
-		variant: "error",
-	});
-
-	const triggerToast = (message: string, variant: ToastVariant = "error") => {
-		setToast((prev) => ({
-			id: prev.id + 1,
-			isOpen: true,
-			message,
-			variant,
-		}));
-	};
-
-	useEffect(() => {
-		if (state?.error) {
-			triggerToast(state.error, "error");
-		} else if (state?.warning) {
-			triggerToast(state.warning, "warning");
-		}
-	}, [state]);
+	const { toast, closeToast } = useActionToast(state);
 
 	const amountFieldRef = useRef<HTMLDivElement | null>(null);
 	const amountInputRef = useRef<HTMLInputElement | null>(null);
@@ -304,7 +267,7 @@ export default function TransferContainer({ pockets }: TransferContainerProps) {
 						variant={toast.variant}
 						position="top-center"
 						isOpen={toast.isOpen}
-						onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
+						onClose={closeToast}
 						message={toast.message}
 					/>
 				)}

@@ -5,27 +5,13 @@ import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { db, pockets, categories, transactions } from "@/db";
 import { requireSession } from "@/lib/auth";
+import { getJakartaDateString } from "@/lib/date";
 
 export type TransactionActionState = {
 	error?: string;
 	warning?: string;
 	success?: boolean;
 };
-
-function getJakartaDateString(): string {
-	const parts = new Intl.DateTimeFormat("en-US", {
-		timeZone: "Asia/Jakarta",
-		year: "numeric",
-		month: "2-digit",
-		day: "2-digit",
-	}).formatToParts(new Date());
-
-	const year = parts.find((p) => p.type === "year")?.value;
-	const month = parts.find((p) => p.type === "month")?.value;
-	const day = parts.find((p) => p.type === "day")?.value;
-
-	return `${year}-${month}-${day}`;
-}
 
 export async function createTransactionAction(
 	_prevState: TransactionActionState | null,

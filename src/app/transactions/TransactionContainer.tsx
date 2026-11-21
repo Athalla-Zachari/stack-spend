@@ -1,15 +1,16 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import type { Pocket, Category } from "@/db/schema";
 import { createTransactionAction } from "@/app/actions/transactions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Toast } from "@/components/ui/toast";
+import { Toast, useActionToast } from "@/components/ui/toast";
 import Numpad from "@/components/ui/numpad";
 import { PocketSelector } from "@/components/PocketSelector";
+import { formatRupiahInput } from "@/lib/utils";
 import {
 	Select,
 	SelectContent,
@@ -28,24 +29,8 @@ interface TransactionContainerProps {
 	type?: Category["type"];
 }
 
-type ToastVariant = "error" | "warning" | "success" | "info";
-
-interface ToastState {
-	id: number;
-	isOpen: boolean;
-	message: string;
-	variant: ToastVariant;
-}
-
 function formatCategoryLabel(name: string) {
 	return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-function formatRupiahInput(rawDigits: string): string {
-	if (!rawDigits) return "";
-	const numeric = Number(rawDigits);
-	if (Number.isNaN(numeric)) return "";
-	return numeric.toLocaleString("id-ID");
 }
 
 export default function TransactionContainer({
@@ -69,29 +54,7 @@ export default function TransactionContainer({
 	const [amount, setAmount] = useState<string>("");
 	const [isNumpadOpen, setIsNumpadOpen] = useState<boolean>(false);
 
-	const [toast, setToast] = useState<ToastState>({
-		id: 0,
-		isOpen: false,
-		message: "",
-		variant: "error",
-	});
-
-	const triggerToast = (message: string, variant: ToastVariant = "error") => {
-		setToast((prev) => ({
-			id: prev.id + 1,
-			isOpen: true,
-			message,
-			variant,
-		}));
-	};
-
-	useEffect(() => {
-		if (state?.error) {
-			triggerToast(state.error, "error");
-		} else if (state?.warning) {
-			triggerToast(state.warning, "warning");
-		}
-	}, [state]);
+	const { toast, closeToast } = useActionToast(state);
 
 	const amountFieldRef = useRef<HTMLDivElement | null>(null);
 	const amountInputRef = useRef<HTMLInputElement | null>(null);
@@ -333,7 +296,7 @@ export default function TransactionContainer({
 						variant={toast.variant}
 						position="top-center"
 						isOpen={toast.isOpen}
-						onClose={() => setToast((prev) => ({ ...prev, isOpen: false }))}
+						onClose={closeToast}
 						message={toast.message}
 					/>
 				)}
