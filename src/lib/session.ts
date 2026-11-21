@@ -1,7 +1,6 @@
 export const SESSION_COOKIE_NAME = "stack_session";
 
-const SESSION_SECRET =
-  process.env.SESSION_SECRET || "stack-spend-super-secret-key-98234712";
+const MIN_SESSION_SECRET_LENGTH = 32;
 
 export interface SessionUser {
   id: string;
@@ -9,11 +8,21 @@ export interface SessionUser {
   displayName: string;
 }
 
+export function getSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET?.trim();
+  if (!secret || secret.length < MIN_SESSION_SECRET_LENGTH) {
+    throw new Error(
+      `SESSION_SECRET environment variable must be set and at least ${MIN_SESSION_SECRET_LENGTH} characters long.`
+    );
+  }
+  return secret;
+}
+
 async function getSigningKey(): Promise<CryptoKey> {
   const enc = new TextEncoder();
   return crypto.subtle.importKey(
     "raw",
-    enc.encode(SESSION_SECRET),
+    enc.encode(getSessionSecret()),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"]
@@ -70,13 +79,15 @@ export async function createSessionToken(user: SessionUser): Promise<string> {
 export async function verifySessionToken(
   token: string
 ): Promise<SessionUser | null> {
+  // Resolve signing key outside try/catch so missing SESSION_SECRET fails loudly instead of returning null.
+  const key = await getSigningKey();
+
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
     const [header, payload, signature] = parts;
     const data = `${header}.${payload}`;
 
-    const key = await getSigningKey();
     const enc = new TextEncoder();
 
     let base64Sig = signature.replace(/-/g, "+").replace(/_/g, "/");
@@ -94,7 +105,15 @@ export async function verifySessionToken(
     if (!isValid) return null;
 
     const parsed = JSON.parse(base64UrlDecode(payload));
-    if (Date.now() > parsed.exp) return null;
+    if (
+      typeof parsed?.exp !== "number" ||
+      Date.now() > parsed.exp ||
+      typeof parsed?.id !== "string" ||
+      typeof parsed?.email !== "string" ||
+      typeof parsed?.displayName !== "string"
+    ) {
+      return null;
+    }
 
     return {
       id: parsed.id,
