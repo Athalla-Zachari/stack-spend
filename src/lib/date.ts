@@ -1,5 +1,15 @@
 const JAKARTA_TIMEZONE = "Asia/Jakarta";
 
+const WEEKDAY_SHORT_NAMES = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+] as const;
+
 export const MONTH_NAMES = [
   "January",
   "February",
@@ -93,4 +103,67 @@ export function formatDisplayDate(dateStr: string, todayStr: string): string {
     return `Yesterday, ${parsed.day} ${shortMonth}`;
   }
   return `${parsed.day} ${shortMonth} ${parsed.year}`;
+}
+
+export function getWeekStartMonday(dateStr: string): string {
+  const parsed = parseDateString(dateStr);
+  if (!parsed) return dateStr;
+
+  const dt = new Date(Date.UTC(parsed.year, parsed.monthIndex, parsed.day));
+  const mondayOffset = (dt.getUTCDay() + 6) % 7;
+  return shiftDateString(dateStr, -mondayOffset);
+}
+
+export function formatShortWeekdayDate(dateStr: string): string {
+  const parsed = parseDateString(dateStr);
+  if (!parsed) return dateStr;
+
+  const dt = new Date(Date.UTC(parsed.year, parsed.monthIndex, parsed.day));
+  const weekday = WEEKDAY_SHORT_NAMES[dt.getUTCDay()];
+  const shortMonth = MONTH_NAMES[parsed.monthIndex].slice(0, 3);
+  return `${weekday}, ${parsed.day} ${shortMonth}`;
+}
+
+export function formatCompactWeekRange(weekStartStr: string): string {
+  const normalizedStart = getWeekStartMonday(weekStartStr);
+  const start = parseDateString(normalizedStart);
+  const end = parseDateString(shiftDateString(normalizedStart, 6));
+  if (!start || !end) return weekStartStr;
+
+  const startMonth = MONTH_NAMES[start.monthIndex].slice(0, 3);
+  const endMonth = MONTH_NAMES[end.monthIndex].slice(0, 3);
+
+  if (start.year !== end.year) {
+    return `${start.day} ${startMonth} ${start.year} - ${end.day} ${endMonth} ${end.year}`;
+  }
+  if (start.monthIndex === end.monthIndex) {
+    return `${start.day}-${end.day} ${endMonth}`;
+  }
+  return `${start.day} ${startMonth} - ${end.day} ${endMonth}`;
+}
+
+export function formatWeekRangeLabel(
+  weekStartStr: string,
+  todayStr: string,
+): string {
+  const normalizedStart = getWeekStartMonday(weekStartStr);
+  const currentWeekStart = getWeekStartMonday(todayStr);
+  const lastWeekStart = shiftDateString(currentWeekStart, -7);
+
+  const start = parseDateString(normalizedStart);
+  const end = parseDateString(shiftDateString(normalizedStart, 6));
+  if (!start || !end) return weekStartStr;
+
+  const compactRange = formatCompactWeekRange(normalizedStart);
+  if (normalizedStart === currentWeekStart) {
+    return `This Week (${compactRange})`;
+  }
+  if (normalizedStart === lastWeekStart) {
+    return `Last Week (${compactRange})`;
+  }
+
+  if (start.year !== end.year) {
+    return compactRange;
+  }
+  return `${compactRange} ${end.year}`;
 }

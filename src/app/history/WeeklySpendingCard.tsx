@@ -1,89 +1,82 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Minus, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
+import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import type { TransactionWithDetails } from "@/db/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  computeMonthlyWeeklyStats,
-  type ChartViewMode,
-} from "@/lib/spending-stats";
+  formatCompactWeekRange,
+  getWeekStartMonday,
+} from "@/lib/date";
+import { computeWeeklyDailyStats } from "@/lib/spending-stats";
 
-export { computeMonthlyWeeklyStats };
-export type { BarItem, ChartViewMode, MonthlyWeeklyStats } from "@/lib/spending-stats";
+export { computeWeeklyDailyStats };
+export type {
+  DayBarItem,
+  WeeklyDailyStats,
+  WeeklyTrend,
+} from "@/lib/spending-stats";
 
 interface WeeklySpendingCardProps {
   transactions: TransactionWithDetails[];
-  year: number;
-  monthIndex: number;
-  monthName: string;
-  scopeKey?: string;
+  weekStart: string;
+  todayStr: string;
+  selectedDate: string | null;
+  onSelectDate: (dateStr: string | null) => void;
   className?: string;
 }
 
 export function WeeklySpendingCard({
   transactions,
-  year,
-  monthIndex,
-  monthName,
-  scopeKey,
+  weekStart,
+  todayStr,
+  selectedDate,
+  onSelectDate,
   className = "",
 }: WeeklySpendingCardProps) {
-  const [viewMode, setViewMode] = useState<ChartViewMode>("weeks");
-  const activeScope = `${scopeKey ?? `${year}-${monthIndex}`}-${viewMode}`;
-  const [barSelection, setBarSelection] = useState<{
-    scope: string;
-    id: string | null;
-  }>({ scope: "", id: null });
-
-  const selectedBarId =
-    barSelection.scope === activeScope ? barSelection.id : null;
-
   const stats = useMemo(
-    () => computeMonthlyWeeklyStats(transactions, year, monthIndex, monthName),
-    [transactions, year, monthIndex, monthName],
+    () => computeWeeklyDailyStats(transactions, weekStart, todayStr),
+    [transactions, weekStart, todayStr],
   );
 
-  const activeBars = viewMode === "weeks" ? stats.weeks : stats.days;
-  const selectedBar =
-    activeBars.find((bar) => bar.id === selectedBarId) ?? null;
+  const selectedBar = selectedDate
+    ? (stats.days.find((day) => day.dateStr === selectedDate) ?? null)
+    : null;
+
+  const isCurrentWeek = stats.weekStart === getWeekStartMonday(todayStr);
+  const compactRange = formatCompactWeekRange(stats.weekStart);
 
   const headlineLabel = selectedBar
-    ? selectedBar.fullLabel
-    : "Avg. weekly spend";
+    ? selectedBar.isToday
+      ? "Spent today"
+      : `Spent on ${selectedBar.fullLabel}`
+    : isCurrentWeek
+      ? "Spent this week"
+      : `Spent ${compactRange}`;
 
   const headlineAmount = selectedBar
     ? selectedBar.amount
-    : stats.avgWeeklySpending;
+    : stats.totalWeekSpending;
 
-  let badgeText = `No expenses in ${monthName}`;
-  let BadgeIcon = Minus;
+  let badgeText = stats.trend.text;
+  let BadgeIcon =
+    stats.trend.direction === "up"
+      ? TrendingUp
+      : stats.trend.direction === "down"
+        ? TrendingDown
+        : Minus;
 
   if (selectedBar) {
     BadgeIcon = selectedBar.amount > 0 ? TrendingUp : Minus;
     badgeText =
       selectedBar.amount > 0
-        ? `${selectedBar.sharePercent}% of ${monthName.slice(0, 3)} (${selectedBar.count} tx)`
-        : `0 spent in ${selectedBar.shortLabel}`;
-  } else if (stats.totalMonthSpending > 0) {
-    BadgeIcon = TrendingUp;
-    if (viewMode === "weeks" && stats.peakWeek) {
-      badgeText = `Peak: ${stats.peakWeek.shortLabel} (${stats.peakWeek.sharePercent}% of month)`;
-    } else if (viewMode === "days" && stats.peakDay) {
-      badgeText = `Highest on ${stats.peakDay.shortLabel} (${stats.peakDay.sharePercent}% of month)`;
-    }
+        ? `${selectedBar.sharePercent}% of week (${selectedBar.count} tx)`
+        : `0 spent on ${selectedBar.fullLabel}`;
   }
-
-  const handleBarClick = (id: string) => {
-    setBarSelection({
-      scope: activeScope,
-      id: selectedBarId === id ? null : id,
-    });
-  };
 
   return (
     <section
-      aria-label="Weekly and daily spending habits"
+      aria-label="Weekly spending summary and daily breakdown"
       className={`w-full rounded-2xl bg-teal-mid p-4.5 border border-grey300/20 shadow-xs flex flex-col gap-3.5 ${className}`}
     >
       <div className="flex justify-between items-start gap-3">
@@ -100,56 +93,26 @@ export function WeeklySpendingCard({
           </span>
         </div>
 
-        <div
-          role="tablist"
-          aria-label="Spending breakdown mode"
-          className="bg-teal-deep/60 p-1 rounded-xl border border-grey300/15 flex items-center gap-1 shrink-0"
-        >
+        {selectedBar && (
           <button
             type="button"
-            role="tab"
-            aria-selected={viewMode === "weeks"}
-            onClick={() => setViewMode("weeks")}
-            className={`min-h-11 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-lime ${
-              viewMode === "weeks"
-                ? "bg-lime text-teal-deep"
-                : "text-grey100 hover:bg-teal/40"
-            }`}
+            onClick={() => onSelectDate(null)}
+            className="min-h-11 px-3 rounded-xl bg-teal-deep/70 hover:bg-teal-deep text-grey100 text-xs font-semibold border border-grey300/20 shrink-0 cursor-pointer transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-lime"
           >
-            Weeks
+            All week
           </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={viewMode === "days"}
-            onClick={() => setViewMode("days")}
-            className={`min-h-11 px-3 rounded-lg text-xs font-semibold cursor-pointer transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-lime ${
-              viewMode === "days"
-                ? "bg-lime text-teal-deep"
-                : "text-grey100 hover:bg-teal/40"
-            }`}
-          >
-            Days
-          </button>
-        </div>
+        )}
       </div>
 
       <div className="pt-3 border-t border-grey300/15 flex flex-col gap-2">
         <div
           role="group"
-          aria-label={
-            viewMode === "weeks"
-              ? `Weekly spending bars for ${monthName} ${year}`
-              : `Day of week spending bars for ${monthName} ${year}`
-          }
-          className="grid gap-1.5 sm:gap-2 items-end"
-          style={{
-            gridTemplateColumns: `repeat(${activeBars.length}, minmax(0, 1fr))`,
-          }}
+          aria-label={`Daily spending bars for ${compactRange}`}
+          className="grid grid-cols-7 gap-1 sm:gap-2 items-end"
         >
-          {activeBars.map((bar) => {
-            const isSelected = selectedBarId === bar.id;
-            const isHighlighted = selectedBarId ? isSelected : bar.isPeak;
+          {stats.days.map((bar) => {
+            const isSelected = selectedDate === bar.dateStr;
+            const isHighlighted = selectedBar ? isSelected : bar.isPeak;
             const barHeightPx =
               bar.amount > 0
                 ? Math.max(10, Math.round((bar.heightPercent / 100) * 68))
@@ -157,22 +120,22 @@ export function WeeklySpendingCard({
 
             return (
               <button
-                key={bar.id}
+                key={bar.dateStr}
                 type="button"
                 aria-pressed={isSelected}
                 aria-label={`${bar.fullLabel}: IDR ${bar.amount.toLocaleString("id-ID")}`}
-                onClick={() => handleBarClick(bar.id)}
-                className={`min-h-11 flex flex-col items-center justify-end gap-1.5 rounded-xl py-1.5 px-1 cursor-pointer transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-lime ${
+                onClick={() => onSelectDate(isSelected ? null : bar.dateStr)}
+                className={`min-h-11 flex flex-col items-center justify-end gap-1.5 rounded-xl py-1.5 px-0.5 sm:px-1 cursor-pointer transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-lime ${
                   isSelected
                     ? "bg-teal-deep/55 ring-1 ring-lime/70"
                     : "hover:bg-teal-deep/35"
                 }`}
               >
-                <span className="text-[11px] font-semibold text-grey100 leading-none">
+                <span className="text-[11px] font-semibold text-grey100 leading-none min-h-3">
                   {bar.amount > 0 ? `${bar.sharePercent}%` : ""}
                 </span>
 
-                <div className="w-full h-17 flex items-end justify-center px-1">
+                <div className="w-full h-17 flex items-end justify-center px-0.5 sm:px-1">
                   <div
                     style={{ height: `${barHeightPx}px` }}
                     className={`w-full max-w-7 rounded-t-md rounded-b-xs transition-all duration-200 motion-reduce:transition-none ${
@@ -194,18 +157,24 @@ export function WeeklySpendingCard({
                 >
                   {bar.shortLabel}
                 </span>
-                <span className="text-[11px] text-grey300 leading-none truncate max-w-full">
-                  {bar.subLabel}
+                <span
+                  className={`text-[11px] leading-none ${
+                    bar.isToday
+                      ? "text-lime font-semibold underline underline-offset-2"
+                      : "text-grey300"
+                  }`}
+                >
+                  {bar.dayNumber}
                 </span>
               </button>
             );
           })}
         </div>
 
-        {stats.totalMonthSpending === 0 && (
+        {stats.totalWeekSpending === 0 && (
           <p className="text-xs text-grey300 text-center pt-1">
-            No expenses recorded for {monthName} {year}. Add an expense to see
-            your weekly and daily patterns.
+            No expenses recorded for {compactRange}. Add an expense to see daily
+            spending.
           </p>
         )}
       </div>
@@ -229,13 +198,13 @@ export function WeeklySpendingCardSkeleton({
           <Skeleton className="h-8 w-40 rounded-lg bg-grey300/30" />
           <Skeleton className="h-6 w-36 rounded-full bg-grey300/30" />
         </div>
-        <Skeleton className="h-11 w-32 rounded-xl bg-grey300/30 shrink-0" />
       </div>
-      <div className="pt-3 border-t border-grey300/15 grid grid-cols-5 gap-2 items-end">
-        {[1, 2, 3, 4, 5].map((item) => (
+      <div className="pt-3 border-t border-grey300/15 grid grid-cols-7 gap-1.5 sm:gap-2 items-end">
+        {[1, 2, 3, 4, 5, 6, 7].map((item) => (
           <div key={item} className="flex flex-col items-center gap-1.5">
             <Skeleton className="h-14 w-full max-w-7 rounded-md bg-grey300/30" />
             <Skeleton className="h-3 w-6 rounded bg-grey300/30" />
+            <Skeleton className="h-2.5 w-4 rounded bg-grey300/30" />
           </div>
         ))}
       </div>

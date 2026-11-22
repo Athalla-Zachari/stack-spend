@@ -10,11 +10,13 @@ import {
   TransactionListSkeleton,
 } from "@/components/TransactionList";
 import {
-  MONTH_NAMES,
-  formatShortDate,
-  getDaysInMonth,
+  formatCompactWeekRange,
+  formatShortWeekdayDate,
+  formatWeekRangeLabel,
   getJakartaDateString,
+  getWeekStartMonday,
   parseDateString,
+  shiftDateString,
 } from "@/lib/date";
 import {
   WeeklySpendingCard,
@@ -23,6 +25,7 @@ import {
 
 interface HistoryContainerProps {
   transactions: TransactionWithDetails[];
+  todayStr?: string;
   limit?: number;
   showSeeAll?: boolean;
   showFilter?: boolean;
@@ -35,6 +38,7 @@ interface HistoryContainerProps {
 
 export default function HistoryContainer({
   transactions,
+  todayStr,
   limit = 5,
   showSeeAll = false,
   showFilter = false,
@@ -47,241 +51,149 @@ export default function HistoryContainer({
   const searchParams = useSearchParams();
   const selectedPocket = searchParams.get("pocket");
 
-  // Inisialisasi tanggal aktif (prioritas dari transaksi terbaru, fallback ke tanggal hari ini)
-  const [currentDate, setCurrentDate] = useState<{
-    year: number;
-    month: number;
-  }>(() => {
-    const scoped =
-      selectedPocket && selectedPocket !== "all"
-        ? transactions.filter((tx) => tx.pocketId === selectedPocket)
-        : transactions;
-    const latestTx = scoped[0] ?? transactions[0];
-    const parsedLatest = latestTx?.transactionDate
-      ? parseDateString(latestTx.transactionDate)
-      : null;
+  const resolvedTodayStr = todayStr ?? getJakartaDateString();
+  const currentWeekStart = getWeekStartMonday(resolvedTodayStr);
 
-    if (parsedLatest) {
-      return { year: parsedLatest.year, month: parsedLatest.monthIndex };
-    }
-
-    const jakartaToday = parseDateString(getJakartaDateString());
-    if (jakartaToday) {
-      return { year: jakartaToday.year, month: jakartaToday.monthIndex };
-    }
-
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth() };
-  });
-
-  const selectedMonth = currentDate.month;
-  const selectedYear = currentDate.year;
-  const monthScope = `${selectedYear}-${selectedMonth}`;
+  const [weekStart, setWeekStart] = useState<string>(currentWeekStart);
+  const weekScope = `${selectedPocket ?? "all"}-${weekStart}`;
 
   const [daySelection, setDaySelection] = useState<{
     scope: string;
-    day: number | null;
-  }>({ scope: "", day: null });
+    date: string | null;
+  }>({ scope: "", date: null });
 
-  const selectedDay =
-    daySelection.scope === monthScope ? daySelection.day : null;
+  const selectedDate =
+    daySelection.scope === weekScope ? daySelection.date : null;
 
-  const daysInSelectedMonth = getDaysInMonth(selectedYear, selectedMonth);
+  const weekEnd = shiftDateString(weekStart, 6);
 
-  // Opsi daftar tahun dinamis berdasarkan data transaksi dan tahun saat ini
-  const availableYears = useMemo(() => {
-    const currentYear =
-      parseDateString(getJakartaDateString())?.year ?? new Date().getFullYear();
-    const txYears = transactions
-      .map((tx) => parseInt(tx.transactionDate.split("-")[0], 10))
-      .filter((y) => !isNaN(y));
-
-    const minYear = Math.min(currentYear - 3, ...txYears);
-    const maxYear = Math.max(currentYear + 1, ...txYears);
-
-    const years: number[] = [];
-    for (let y = maxYear; y >= minYear; y--) {
-      years.push(y);
-    }
-    return years;
-  }, [transactions]);
-
-  const handlePrevMonth = () => {
-    setCurrentDate((prev) =>
-      prev.month === 0
-        ? { year: prev.year - 1, month: 11 }
-        : { year: prev.year, month: prev.month - 1 },
-    );
+  const handlePrevWeek = () => {
+    setWeekStart((prev) => shiftDateString(prev, -7));
   };
 
-  const handleNextMonth = () => {
-    setCurrentDate((prev) =>
-      prev.month === 11
-        ? { year: prev.year + 1, month: 0 }
-        : { year: prev.year, month: prev.month + 1 },
-    );
-  };
-
-  const handleYearChange = (newYear: number) => {
-    setCurrentDate((prev) => ({ year: newYear, month: prev.month }));
-  };
-
-  const handlePrevDay = () => {
-    setDaySelection({
-      scope: monthScope,
-      day:
-        selectedDay === null
-          ? daysInSelectedMonth
-          : selectedDay <= 1
-            ? null
-            : selectedDay - 1,
+  const handleNextWeek = () => {
+    setWeekStart((prev) => {
+      const next = shiftDateString(prev, 7);
+      return next > currentWeekStart ? currentWeekStart : next;
     });
   };
 
-  const handleNextDay = () => {
-    setDaySelection({
-      scope: monthScope,
-      day:
-        selectedDay === null
-          ? 1
-          : selectedDay >= daysInSelectedMonth
-            ? null
-            : selectedDay + 1,
-    });
+  const handleSelectDate = (dateStr: string | null) => {
+    setDaySelection({ scope: weekScope, date: dateStr });
   };
 
-  const handleDayChange = (value: string) => {
-    if (value === "all") {
-      setDaySelection({ scope: monthScope, day: null });
-      return;
+  // Pocket-scoped transactions across all dates so cross-month weeks and prev-week trend stay accurate.
+  const pocketTransactions = useMemo(() => {
+    if (!selectedPocket || selectedPocket === "all") return transactions;
+    return transactions.filter((tx) => tx.pocketId === selectedPocket);
+  }, [transactions, selectedPocket]);
+
+  const displayedTransactions = useMemo(() => {
+    if (!showFilter) return pocketTransactions;
+    if (selectedDate) {
+      return pocketTransactions.filter(
+        (tx) => tx.transactionDate === selectedDate,
+      );
     }
-    const parsed = Number(value);
-    if (
-      Number.isInteger(parsed) &&
-      parsed >= 1 &&
-      parsed <= daysInSelectedMonth
-    ) {
-      setDaySelection({ scope: monthScope, day: parsed });
-    }
-  };
-
-  const monthPrefix = `${selectedYear}-${String(selectedMonth + 1).padStart(2, "0")}`;
-  const selectedDayString =
-    showFilter && selectedDay !== null
-      ? `${monthPrefix}-${String(selectedDay).padStart(2, "0")}`
-      : null;
-
-  // Filter transaksi berdasarkan bulan, tahun, dan pocket terpilih
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter((tx) => {
-      const matchDate = showFilter
-        ? tx.transactionDate.startsWith(monthPrefix)
-        : true;
-      const matchPocket =
-        selectedPocket && selectedPocket !== "all"
-          ? tx.pocketId === selectedPocket
-          : true;
-      return matchDate && matchPocket;
-    });
-  }, [transactions, showFilter, monthPrefix, selectedPocket]);
-
-  const dayFilteredTransactions = useMemo(() => {
-    if (!selectedDayString) return filteredTransactions;
-    return filteredTransactions.filter(
-      (tx) => tx.transactionDate === selectedDayString,
+    return pocketTransactions.filter(
+      (tx) => tx.transactionDate >= weekStart && tx.transactionDate <= weekEnd,
     );
-  }, [filteredTransactions, selectedDayString]);
+  }, [pocketTransactions, showFilter, selectedDate, weekStart, weekEnd]);
 
-  const shortMonth = MONTH_NAMES[selectedMonth].slice(0, 3);
-  const daySelectorLabel =
-    selectedDayString !== null ? formatShortDate(selectedDayString) : "All Days";
+  const compactWeekRange = formatCompactWeekRange(weekStart);
+  const selectedDayLabel = selectedDate
+    ? formatShortWeekdayDate(selectedDate)
+    : null;
+
+  const resolvedHeaderTitle = selectedDayLabel
+    ? `Transactions (${selectedDayLabel})`
+    : headerTitle;
 
   const resolvedEmptyTitle =
     emptyTitle ??
-    (selectedDayString
-      ? `No Transactions on ${formatShortDate(selectedDayString)}`
-      : undefined);
+    (selectedDayLabel
+      ? `No Transactions on ${selectedDayLabel}`
+      : showFilter
+        ? weekStart === currentWeekStart
+          ? "No Transactions This Week"
+          : `No Transactions (${compactWeekRange})`
+        : undefined);
+
   const resolvedEmptyMessage =
     emptyMessage ??
-    (selectedDayString
-      ? `No spending or income recorded for ${formatShortDate(selectedDayString)}.`
-      : undefined);
+    (selectedDayLabel
+      ? `No spending or income recorded for ${selectedDayLabel}.`
+      : showFilter
+        ? `No spending or income recorded for ${compactWeekRange}.`
+        : undefined);
+
+  const datePickerValue =
+    selectedDate ??
+    (weekStart === currentWeekStart ? resolvedTodayStr : weekStart);
 
   return (
     <section className="py-2 flex flex-col gap-3">
+      {showFilter && (
+        <>
+          <PeriodNavigator
+            label={formatWeekRangeLabel(weekStart, resolvedTodayStr)}
+            prevLabel="Previous Week"
+            nextLabel="Next Week"
+            onPrev={handlePrevWeek}
+            onNext={handleNextWeek}
+            nextDisabled={weekStart >= currentWeekStart}
+          >
+            <input
+              type="date"
+              aria-label="Jump to week by date"
+              value={datePickerValue}
+              max={resolvedTodayStr}
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker?.();
+                } catch {
+                  // Browsers without showPicker support open on focus or native tap.
+                }
+              }}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (!value || !parseDateString(value)) return;
+                const clamped =
+                  value > resolvedTodayStr ? resolvedTodayStr : value;
+                setWeekStart(getWeekStartMonday(clamped));
+              }}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
+            />
+          </PeriodNavigator>
+
+          <WeeklySpendingCard
+            transactions={pocketTransactions}
+            weekStart={weekStart}
+            todayStr={resolvedTodayStr}
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+          />
+        </>
+      )}
+
       {showHeader && (
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium text-lg text-charcoal tracking-tight">
-            {headerTitle}
+        <div className="flex items-center justify-between gap-2 pt-1">
+          <h2 className="font-medium text-lg text-charcoal tracking-tight truncate">
+            {resolvedHeaderTitle}
           </h2>
           {showEntryLength && (
-            <p className="text-subtext text-xs">
-              {dayFilteredTransactions.length} transactions
+            <p className="text-subtext text-xs shrink-0">
+              {displayedTransactions.length}{" "}
+              {displayedTransactions.length === 1
+                ? "transaction"
+                : "transactions"}
             </p>
           )}
         </div>
       )}
 
-      {showFilter && (
-        <>
-          <PeriodNavigator
-            label={`${MONTH_NAMES[selectedMonth]} ${selectedYear}`}
-            prevLabel="Previous Month"
-            nextLabel="Next Month"
-            onPrev={handlePrevMonth}
-            onNext={handleNextMonth}
-          >
-            <select
-              aria-label="Select Year"
-              value={selectedYear}
-              onChange={(e) => handleYearChange(Number(e.target.value))}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
-            >
-              {availableYears.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </PeriodNavigator>
-
-          <WeeklySpendingCard
-            transactions={filteredTransactions}
-            year={selectedYear}
-            monthIndex={selectedMonth}
-            monthName={MONTH_NAMES[selectedMonth]}
-            scopeKey={`${selectedPocket ?? "all"}-${selectedYear}-${selectedMonth}`}
-          />
-
-          <PeriodNavigator
-            label={daySelectorLabel}
-            prevLabel="Previous Day"
-            nextLabel="Next Day"
-            onPrev={handlePrevDay}
-            onNext={handleNextDay}
-          >
-            <select
-              aria-label="Select Day"
-              value={selectedDay === null ? "all" : String(selectedDay)}
-              onChange={(e) => handleDayChange(e.target.value)}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer text-base"
-            >
-              <option value="all">All Days</option>
-              {Array.from(
-                { length: daysInSelectedMonth },
-                (_, idx) => idx + 1,
-              ).map((day) => (
-                <option key={day} value={String(day)}>
-                  {day} {shortMonth} {selectedYear}
-                </option>
-              ))}
-            </select>
-          </PeriodNavigator>
-        </>
-      )}
-
       <TransactionList
-        transactions={dayFilteredTransactions}
+        transactions={displayedTransactions}
         limit={limit}
         showSeeAll={showSeeAll}
         showHeader={false}
@@ -301,15 +213,14 @@ export function HistoryContainerSkeleton({
     <section className="py-2 flex flex-col gap-3">
       {showFilter && (
         <>
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-5 w-36 rounded-md bg-grey300/30" />
-            <Skeleton className="h-4 w-12 rounded-md bg-grey300/30" />
-          </div>
           <Skeleton className="h-13 w-full rounded-full bg-grey300/30" />
           <WeeklySpendingCardSkeleton />
-          <Skeleton className="h-13 w-full rounded-full bg-grey300/30" />
         </>
       )}
+      <div className="flex items-center justify-between pt-1">
+        <Skeleton className="h-5 w-36 rounded-md bg-grey300/30" />
+        <Skeleton className="h-4 w-20 rounded-md bg-grey300/30" />
+      </div>
       <TransactionListSkeleton />
     </section>
   );

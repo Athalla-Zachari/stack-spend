@@ -145,7 +145,7 @@ export default function PocketsManager({
 			variant="solid"
 			size="lg"
 			onClick={() => setIsAddOpen(true)}
-			className="w-full min-h-12 rounded-2xl bg-teal hover:bg-teal-mid active:bg-teal-deep text-white font-semibold text-base shadow-sm cursor-pointer gap-2"
+			className="w-full min-h-12 rounded-xl bg-teal-deep hover:bg-teal-mid active:bg-teal-deep text-white font-semibold text-base shadow-sm cursor-pointer gap-2"
 			>
 			<Plus className="size-5" aria-hidden="true" />
 			<span>Add pocket</span>

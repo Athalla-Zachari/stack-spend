@@ -205,23 +205,13 @@ export function AddPocketDrawer({
         aria-hidden="true"
       />
 
-      <div className="flex items-center justify-between gap-3 mb-4 shrink-0">
+      <div className="flex items-center mb-4 shrink-0">
         <h2
           id="add-pocket-title"
           className="text-xl font-bold text-teal-deep leading-tight"
         >
           Add pocket
         </h2>
-        <Button
-          type="button"
-          variant="icon"
-          size="icon"
-          aria-label="Close add pocket dialog"
-          onClick={handleRequestClose}
-          className="min-h-11 min-w-11 size-11 text-subtext hover:text-charcoal hover:bg-mist cursor-pointer flex items-center justify-center rounded-full"
-        >
-          <X className="size-5" aria-hidden="true" />
-        </Button>
       </div>
 
       {isOpen && (
