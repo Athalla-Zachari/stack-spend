@@ -110,4 +110,23 @@ test("settings layout uses min-h-dvh and unstable_rethrow when handling ProfileC
   assert.match(layoutSource, /\bunstable_rethrow\b/);
 });
 
+test("PocketCard size=sm scales width proportionally with aspect ratio", () => {
+  const cardSource = readFileSync(
+    new URL("../components/PocketCard.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(cardSource, /aspect-\[1\.6\/1\]/);
+  assert.match(cardSource, /sm:\s*"[^"]*\bmax-w-70\b/);
+});
+
+test("PocketsManager uses size=sm and peek width for multi-pocket carousel", () => {
+  const managerSource = readFileSync(
+    new URL("../app/settings/pockets/PocketsManager.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(managerSource, /<PocketCard[\s\S]*?size="sm"/);
+  assert.match(managerSource, /w-\[78%\]\s+max-w-70/);
+  assert.match(managerSource, /<PocketCardSkeleton\s+size="sm"/);
+});
+
 

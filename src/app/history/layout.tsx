@@ -27,7 +27,7 @@ export default function HistoryLayout({
       <section className="w-full flex justify-center px-6">
         <Suspense
           fallback={
-            <div className="w-full max-w-[320px]">
+            <div className="w-full max-w-70">
               <PocketCardSkeleton size="sm" />
             </div>
           }

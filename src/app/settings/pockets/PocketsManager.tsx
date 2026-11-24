@@ -53,17 +53,27 @@ export default function PocketsManager({
     [triggerToast],
   );
 
+  const hasMultiplePockets = pockets.length > 1;
+
   return (
 		<div className="flex-1 flex flex-col gap-5">
 		{pockets.length > 0 && (
 			<section aria-label="Pocket cards preview">
-			<ElasticScroll className="-mx-4 px-4 w-[calc(100%+2rem)] gap-4 py-1">
+			<ElasticScroll className="-mx-4 px-4 w-[calc(100%+2rem)] gap-3 py-1">
 				{pockets.map((pocket, index) => (
-				<ElasticScrollItem key={pocket.id} className="w-full">
+				<ElasticScrollItem
+					key={pocket.id}
+					className={
+					hasMultiplePockets
+						? "w-[78%] max-w-70"
+						: "w-full max-w-70 mx-auto"
+					}
+				>
 					<PocketCard
 					pocket={pocket}
 					userName={userName}
 					index={index}
+					size="sm"
 					isVisible={isBalanceVisible}
 					onToggleVisibility={() =>
 						setIsBalanceVisible((prev) => !prev)
@@ -184,7 +194,13 @@ export function PocketsManagerSkeleton() {
 		aria-label="Loading pockets"
 		className="flex-1 flex flex-col gap-5"
 		>
-		<PocketCardSkeleton />
+		<div className="-mx-4 px-4 w-[calc(100%+2rem)] flex items-center gap-3 py-1 overflow-hidden">
+			<PocketCardSkeleton size="sm" className="w-[78%] max-w-70 shrink-0" />
+			<PocketCardSkeleton
+			size="sm"
+			className="w-[78%] max-w-70 shrink-0 opacity-60"
+			/>
+		</div>
 
 		<div className="flex flex-col gap-2.5">
 			<Skeleton className="h-4 w-20 rounded-md bg-grey300/40 mx-1" />

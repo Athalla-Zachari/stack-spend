@@ -109,7 +109,7 @@ export function CardSelector({ pockets, userName }: CardsProps) {
   return (
     <section
       aria-label="Filter history by pocket"
-      className={`relative w-full max-w-[320px] mx-auto flex flex-col items-center ${
+      className={`relative w-full max-w-70 mx-auto flex flex-col items-center ${
         isExpanded ? "gap-4 pb-2" : "pb-7"
       }`}
     >

@@ -17,12 +17,12 @@ import walletLogo from "../../public/assets/empty-wallet.svg";
 import chip from "../../public/assets/Circuit.svg";
 
 export const pocketCardVariants = cva(
-  "relative w-full rounded-xl shadow-lg border border-teal-deep/10 flex flex-col justify-between overflow-hidden",
+  "relative w-full rounded-xl shadow-lg border border-teal-deep/10 flex flex-col justify-between overflow-hidden aspect-[1.6/1]",
   {
     variants: {
       size: {
         default: "p-5 gap-3",
-        sm: "p-4 gap-2 min-h-36",
+        sm: "max-w-70 p-4 gap-2",
       },
     },
     defaultVariants: {
@@ -100,8 +100,8 @@ export function PocketCard({
 			<Button
 			onClick={handleToggle}
 			variant={"icon"}
-			size={"icon"}
-			className={`text-teal-deep cursor-pointer ${isSm ? "size-7" : ""}`}
+			size={"xxs"}
+			className="min-h-11 min-w-11 -my-2 -mr-1.5 text-teal-deep cursor-pointer"
 			aria-label={isVisible ? "Sembunyikan saldo" : "Tampilkan saldo"}
 			>
 			{isVisible ? (
@@ -151,12 +151,12 @@ export function PocketCard({
 }
 
 export const pocketCardSkeletonVariants = cva(
-  "w-full rounded-xl flex flex-col justify-between bg-grey100",
+  "w-full rounded-xl flex flex-col justify-between bg-grey100 aspect-[1.6/1]",
   {
     variants: {
       size: {
         default: "p-5 gap-3",
-        sm: "p-4 gap-2 min-h-36",
+        sm: "max-w-70 p-4 gap-2",
       },
     },
     defaultVariants: {
@@ -174,7 +174,7 @@ export function PocketCardSkeleton({
   return (
     <div className={cn(pocketCardSkeletonVariants({ size, className }))}>
       <div className="flex items-center gap-2">
-        <Skeleton className={`w-40 ${isSm ? "h-5" : "h-6"}`} />
+        <Skeleton className={`max-w-full ${isSm ? "w-32 h-5" : "w-40 h-6"}`} />
         <Skeleton className={`rounded-md ${isSm ? "size-5" : "size-6"}`} />
       </div>
 
@@ -183,7 +183,7 @@ export function PocketCardSkeleton({
         <Skeleton className={`rounded-xl ${isSm ? "size-16" : "size-24"}`} />
       </div>
 
-      <Skeleton className={`w-48 ${isSm ? "h-3.5" : "h-4"}`} />
+      <Skeleton className={`max-w-full ${isSm ? "w-40 h-3.5" : "w-48 h-4"}`} />
     </div>
   );
 }
