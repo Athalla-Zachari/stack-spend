@@ -110,13 +110,24 @@ test("settings layout uses min-h-dvh and unstable_rethrow when handling ProfileC
   assert.match(layoutSource, /\bunstable_rethrow\b/);
 });
 
-test("PocketCard size=sm scales width proportionally with aspect ratio", () => {
+test("PocketCard size=sm scales proportionally without clipping while keeping default unconstrained", () => {
   const cardSource = readFileSync(
     new URL("../components/PocketCard.tsx", import.meta.url),
     "utf8",
   );
-  assert.match(cardSource, /aspect-\[1\.6\/1\]/);
-  assert.match(cardSource, /sm:\s*"[^"]*\bmax-w-70\b/);
+  // aspect-[1.6/1] belongs on size="sm" only so /home size="default" neither clips at 320px nor balloons on desktop
+  assert.doesNotMatch(
+    cardSource,
+    /pocketCardVariants = cva\(\s*"[^"]*aspect-\[1\.6\/1\]/,
+  );
+  assert.match(cardSource, /sm:\s*"[^"]*\bmax-w-70\b[^"]*aspect-\[1\.6\/1\]/);
+  assert.match(cardSource, /isSm\s*\?\s*"h-6"\s*:\s*"h-10"/);
+  assert.match(cardSource, /isSm\s*\?\s*"h-12"\s*:\s*"h-24"/);
+  assert.match(
+    cardSource,
+    /pocketCardSkeletonVariants = cva\(\s*"[^"]*overflow-hidden/,
+  );
+  assert.match(cardSource, /isSm\s*\?\s*"size-12"\s*:\s*"size-24"/);
 });
 
 test("PocketsManager uses size=sm and peek width for multi-pocket carousel", () => {

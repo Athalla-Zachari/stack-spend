@@ -7,6 +7,7 @@ const SETTINGS_ROUTE_TITLES: Record<string, string> = {
   "/settings": "Setting",
   "/settings/profile": "Profile",
   "/settings/pockets": "Pockets",
+  "/settings/password": "Password",
 };
 
 export default function SettingsHeader() {

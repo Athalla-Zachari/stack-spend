@@ -17,12 +17,12 @@ import walletLogo from "../../public/assets/empty-wallet.svg";
 import chip from "../../public/assets/Circuit.svg";
 
 export const pocketCardVariants = cva(
-  "relative w-full rounded-xl shadow-lg border border-teal-deep/10 flex flex-col justify-between overflow-hidden aspect-[1.6/1]",
+  "relative w-full rounded-xl shadow-lg border border-teal-deep/10 flex flex-col justify-between overflow-hidden",
   {
     variants: {
       size: {
         default: "p-5 gap-3",
-        sm: "max-w-70 p-4 gap-2",
+        sm: "max-w-70 p-3.5 gap-1.5 aspect-[1.6/1]",
       },
     },
     defaultVariants: {
@@ -117,14 +117,14 @@ export function PocketCard({
 			src={chip}
 			alt="sim-chip"
 			className={`${
-				isSm ? "h-7" : "h-10"
+				isSm ? "h-6" : "h-10"
 			} w-auto object-contain shrink-0`}
 			/>
 			<Image
 			src={walletLogo}
 			alt="empty-wallet-logo"
 			className={`${
-				isSm ? "h-16" : "h-24"
+				isSm ? "h-12" : "h-24"
 			} w-auto object-contain shrink-0`}
 			/>
 		</div>
@@ -151,12 +151,12 @@ export function PocketCard({
 }
 
 export const pocketCardSkeletonVariants = cva(
-  "w-full rounded-xl flex flex-col justify-between bg-grey100 aspect-[1.6/1]",
+  "w-full rounded-xl flex flex-col justify-between overflow-hidden bg-grey100",
   {
     variants: {
       size: {
         default: "p-5 gap-3",
-        sm: "max-w-70 p-4 gap-2",
+        sm: "max-w-70 p-3.5 gap-1.5 aspect-[1.6/1]",
       },
     },
     defaultVariants: {
@@ -179,8 +179,8 @@ export function PocketCardSkeleton({
       </div>
 
       <div className="w-full flex justify-between items-center">
-        <Skeleton className={`rounded-md ${isSm ? "h-7 w-9" : "h-10 w-12"}`} />
-        <Skeleton className={`rounded-xl ${isSm ? "size-16" : "size-24"}`} />
+        <Skeleton className={`rounded-md ${isSm ? "h-6 w-8" : "h-10 w-12"}`} />
+        <Skeleton className={`rounded-xl ${isSm ? "size-12" : "size-24"}`} />
       </div>
 
       <Skeleton className={`max-w-full ${isSm ? "w-40 h-3.5" : "w-48 h-4"}`} />

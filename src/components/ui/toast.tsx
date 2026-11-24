@@ -19,8 +19,8 @@ const toastVariants = cva(
 	{
 		variants: {
 		variant: {
-			error: "bg-error text-white",
-			success: "bg-green text-white",
+			error: "bg-red-700 text-white",
+			success: "bg-teal-mid text-white",
 			warning: "bg-warning text-white",
 			info: "bg-teal text-white",
 			progress: "bg-teal-deep text-white",
@@ -164,10 +164,10 @@ export function Toast({
 					variant="icon"
 					size="xxs"
 					onClick={handleClose}
-					className="text-white/80 hover:text-white hover:bg-white/10 rounded-md p-1 transition-colors cursor-pointer"
-					aria-label="Tutup notifikasi"
+					className="min-h-11 min-w-11 -my-2 -mr-2 text-white hover:bg-white/15 rounded-md transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-white"
+					aria-label="Dismiss notification"
 				>
-					<X className="size-4" />
+					<X className="size-4" aria-hidden="true" />
 				</Button>
 				)}
 			</motion.div>

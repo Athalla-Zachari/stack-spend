@@ -124,7 +124,6 @@ export type settingSectionConfig = {
   items: settingConfig[];
 };
 
-// TODO: Create /settings/password route page and remove comingSoon flag.
 export const settingSections: settingSectionConfig[] = [
   {
     id: "account",
@@ -143,7 +142,6 @@ export const settingSections: settingSectionConfig[] = [
         label: "Password",
         path: "/settings/password",
         icon: Lock,
-        comingSoon: true,
       },
     ],
   },
