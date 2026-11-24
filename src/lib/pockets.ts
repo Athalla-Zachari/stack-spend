@@ -101,7 +101,12 @@ export function focusInitialDialogElement(root: {
   return false;
 }
 
-export function formatActivePocketsLabel(count: number): string {
+export function formatActivePocketsLabel(
+  count: number | null | undefined,
+): string {
+  if (count === null || count === undefined) {
+    return "Pocket count unavailable";
+  }
   const safeCount = Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
   return `${safeCount} Active ${safeCount === 1 ? "Pocket" : "Pockets"}`;
 }

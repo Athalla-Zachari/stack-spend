@@ -91,12 +91,23 @@ test("SettingLists comingSoon row does not place aria-disabled on a role-less di
   assert.doesNotMatch(source, /<div[^>]*aria-disabled=/);
 });
 
-test("formatActivePocketsLabel formats singular, plural, zero, and defensive counts", () => {
+test("formatActivePocketsLabel formats singular, plural, zero, nullish, and defensive counts", () => {
   assert.equal(formatActivePocketsLabel(0), "0 Active Pockets");
   assert.equal(formatActivePocketsLabel(1), "1 Active Pocket");
   assert.equal(formatActivePocketsLabel(5), "5 Active Pockets");
   assert.equal(formatActivePocketsLabel(-2), "0 Active Pockets");
   assert.equal(formatActivePocketsLabel(Number.NaN), "0 Active Pockets");
+  assert.equal(formatActivePocketsLabel(null), "Pocket count unavailable");
+  assert.equal(formatActivePocketsLabel(undefined), "Pocket count unavailable");
+});
+
+test("settings layout uses min-h-dvh and unstable_rethrow when handling ProfileCard errors", () => {
+  const layoutSource = readFileSync(
+    new URL("../app/settings/layout.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(layoutSource, /\bmin-h-dvh\b/);
+  assert.match(layoutSource, /\bunstable_rethrow\b/);
 });
 
 

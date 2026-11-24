@@ -10,7 +10,7 @@ interface ProfileCardProps {
   userName: string;
   userEmail?: string;
   avatarUrl?: string | null;
-  activePocketCount: number;
+  activePocketCount: number | null;
 }
 
 export default function ProfileCard({
