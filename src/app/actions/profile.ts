@@ -1,16 +1,22 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, or, sql } from "drizzle-orm";
 import { db, profiles } from "@/db";
 import { ensureAvatarColumn } from "@/db/queries";
 import { requireSession, setSession } from "@/lib/auth";
-import { validateProfileInput } from "@/lib/profile";
+import {
+  findProfileConflict,
+  validateProfileInput,
+  type ProfileField,
+} from "@/lib/profile";
 
 export type ProfileActionState = {
   error?: string;
+  field?: ProfileField;
   success?: boolean;
   displayName?: string;
+  email?: string;
   avatarUrl?: string | null;
 };
 
@@ -20,43 +26,62 @@ export async function updateProfileAction(
 ): Promise<ProfileActionState> {
   const session = await requireSession();
 
-  const rawDisplayName = formData.get("displayName")?.toString() ?? "";
-  const rawAvatarUrl = formData.get("avatarUrl")?.toString() ?? "";
+  const rawDisplayName = formData.get("displayName");
+  const rawEmail = formData.get("email");
+  const rawAvatarUrl = formData.get("avatarUrl");
 
-  const validated = validateProfileInput(rawDisplayName, rawAvatarUrl);
+  const displayName = typeof rawDisplayName === "string" ? rawDisplayName : "";
+  const email = typeof rawEmail === "string" ? rawEmail : "";
+  const avatarUrl = typeof rawAvatarUrl === "string" ? rawAvatarUrl : "";
+
+  const validated = validateProfileInput(displayName, email, avatarUrl);
   if (!validated.ok) {
-    return { error: validated.error };
+    return { field: validated.field, error: validated.error };
   }
 
   try {
     await ensureAvatarColumn();
 
-    const conflictingUser = await db
-      .select({ id: profiles.id })
+    const normalizedDisplayName = validated.displayName.toLowerCase();
+    const conflictingUsers = await db
+      .select({
+        displayName: profiles.displayName,
+        email: profiles.email,
+      })
       .from(profiles)
       .where(
         and(
-          eq(profiles.displayName, validated.displayName),
           ne(profiles.id, session.id),
+          or(
+            eq(profiles.displayName, validated.displayName),
+            eq(sql`lower(trim(${profiles.email}))`, normalizedDisplayName),
+            eq(sql`lower(trim(${profiles.email}))`, validated.email),
+            eq(sql`lower(trim(${profiles.displayName}))`, validated.email),
+          ),
         ),
-      )
-      .get();
+      );
 
-    if (conflictingUser) {
-      return { error: "That username is already taken." };
+    const conflict = findProfileConflict(
+      conflictingUsers,
+      validated.displayName,
+      validated.email,
+    );
+    if (conflict) {
+      return conflict;
     }
 
     await db
       .update(profiles)
       .set({
         displayName: validated.displayName,
+        email: validated.email,
         avatarUrl: validated.avatarUrl,
       })
       .where(eq(profiles.id, session.id));
 
     await setSession({
       id: session.id,
-      email: session.email,
+      email: validated.email,
       displayName: validated.displayName,
     });
   } catch (err) {
@@ -73,6 +98,7 @@ export async function updateProfileAction(
   return {
     success: true,
     displayName: validated.displayName,
+    email: validated.email,
     avatarUrl: validated.avatarUrl,
   };
 }

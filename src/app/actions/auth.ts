@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq, or } from "drizzle-orm";
+import { eq, or, sql } from "drizzle-orm";
 import { db, profiles } from "@/db";
 import { verifyPassword, setSession, clearSession } from "@/lib/auth";
 
@@ -26,26 +26,34 @@ export async function loginAction(
 
   try {
     // Cari user berdasarkan email atau display_name
-    const user = await db
+    const candidates = await db
       .select()
       .from(profiles)
-      .where(or(eq(profiles.email, identifier), eq(profiles.displayName, identifier)))
-      .get();
+      .where(
+        or(
+          eq(sql`lower(trim(${profiles.email}))`, identifier.toLowerCase()),
+          eq(profiles.displayName, identifier),
+        ),
+      )
+      .all();
 
-    if (!user) {
-      return { error: "Username/email atau password salah." };
+    let matchedUser: (typeof candidates)[number] | null = null;
+    for (const candidate of candidates) {
+      if (await verifyPassword(password, candidate.passwordHash)) {
+        matchedUser = candidate;
+        break;
+      }
     }
 
-    const isValid = await verifyPassword(password, user.passwordHash);
-    if (!isValid) {
+    if (!matchedUser) {
       return { error: "Username/email atau password salah." };
     }
 
     // Set session cookie
     await setSession({
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName,
+      id: matchedUser.id,
+      email: matchedUser.email,
+      displayName: matchedUser.displayName,
     });
   } catch (err) {
     console.error("Login error:", err);

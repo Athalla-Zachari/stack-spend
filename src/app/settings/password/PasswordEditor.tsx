@@ -217,16 +217,6 @@ export default function PasswordEditor() {
 
         <div className="flex flex-col-reverse sm:flex-row gap-3 pt-1">
           <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            disabled={isPending}
-            onClick={() => router.push("/settings")}
-            className="w-full sm:flex-1 min-h-12 text-base cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
-          >
-            Cancel
-          </Button>
-          <Button
             type="submit"
             variant="solid"
             size="lg"
