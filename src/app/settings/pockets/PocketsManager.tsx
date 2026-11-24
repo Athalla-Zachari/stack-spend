@@ -54,7 +54,7 @@ export default function PocketsManager({
   );
 
   return (
-		<div className="flex-1 flex flex-col gap-5 min-h-[calc(100dvh-6.5rem)]">
+		<div className="flex-1 flex flex-col gap-5">
 		{pockets.length > 0 && (
 			<section aria-label="Pocket cards preview">
 			<ElasticScroll className="-mx-4 px-4 w-[calc(100%+2rem)] gap-4 py-1">
@@ -182,7 +182,7 @@ export function PocketsManagerSkeleton() {
 	return (
 		<div
 		aria-label="Loading pockets"
-		className="flex-1 flex flex-col gap-5 min-h-[calc(100dvh-6.5rem)]"
+		className="flex-1 flex flex-col gap-5"
 		>
 		<PocketCardSkeleton />
 

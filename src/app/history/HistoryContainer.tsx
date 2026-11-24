@@ -178,7 +178,7 @@ export default function HistoryContainer({
 
       {showHeader && (
         <div className="flex items-center justify-between gap-2 pt-1">
-          <h2 className="font-medium text-lg text-charcoal tracking-tight truncate">
+          <h2 className="font-medium text-charcoal tracking-tight truncate">
             {resolvedHeaderTitle}
           </h2>
           {showEntryLength && (

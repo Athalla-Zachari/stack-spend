@@ -16,7 +16,7 @@ async function PocketsSection() {
 
 export default function SettingsPocketsPage() {
 	return (
-		<main className="w-full flex flex-col bg-mist">
+		<main className="w-full flex-1 flex flex-col bg-mist">
 		<Suspense fallback={<PocketsManagerSkeleton />}>
 			<PocketsSection />
 		</Suspense>

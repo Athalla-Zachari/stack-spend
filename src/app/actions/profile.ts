@@ -66,6 +66,7 @@ export async function updateProfileAction(
 
   revalidatePath("/home");
   revalidatePath("/history");
+  revalidatePath("/settings", "layout");
   revalidatePath("/settings");
   revalidatePath("/settings/profile");
 

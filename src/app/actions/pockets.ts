@@ -27,6 +27,7 @@ const POCKET_REVALIDATE_PATHS = [
 ] as const;
 
 function revalidatePocketPaths() {
+  revalidatePath("/settings", "layout");
   for (const path of POCKET_REVALIDATE_PATHS) {
     revalidatePath(path);
   }

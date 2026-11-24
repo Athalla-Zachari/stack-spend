@@ -10,6 +10,7 @@ import {
   getPocketInitials,
   getPocketBadgeTone,
   focusInitialDialogElement,
+  formatActivePocketsLabel,
 } from "./pockets.ts";
 
 test("validatePocketName trims, collapses spaces, and enforces length bounds", () => {
@@ -89,4 +90,13 @@ test("SettingLists comingSoon row does not place aria-disabled on a role-less di
   );
   assert.doesNotMatch(source, /<div[^>]*aria-disabled=/);
 });
+
+test("formatActivePocketsLabel formats singular, plural, zero, and defensive counts", () => {
+  assert.equal(formatActivePocketsLabel(0), "0 Active Pockets");
+  assert.equal(formatActivePocketsLabel(1), "1 Active Pocket");
+  assert.equal(formatActivePocketsLabel(5), "5 Active Pockets");
+  assert.equal(formatActivePocketsLabel(-2), "0 Active Pockets");
+  assert.equal(formatActivePocketsLabel(Number.NaN), "0 Active Pockets");
+});
+
 
